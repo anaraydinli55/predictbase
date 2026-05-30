@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOiA4ODg4ODgsICJ0eXAiOiAiand0IiwgImFsZyI6ICJlZGRzYSJ9",
+    "payload": "eyJkb21haW4iOiAicHJlZGljdGJhc2UtYmFzZS52ZXJjZWwuYXBwIn0",
+    "signature": "MHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw"
+  },
+  "frame": {
+    "version": "1",
+    "name": "PredictBase",
+    "iconUrl": "https://predictbase-base.vercel.app/icon.png",
+    "homeUrl": "https://predictbase-base.vercel.app",
+    "imageUrl": "https://predictbase-base.vercel.app/preview.png",
+    "buttonTitle": "⚽ Predict & Win USDC",
+    "splashImageUrl": "https://predictbase-base.vercel.app/icon.png",
+    "splashBackgroundColor": "#05070a"
+  }
+}
