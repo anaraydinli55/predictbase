@@ -5,7 +5,7 @@
     "signature": "MHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw"
   },
   "frame": {
-    "version": "1",
+    "version": "next",
     "name": "PredictBase",
     "iconUrl": "https://predictbase-base.vercel.app/icon.png",
     "homeUrl": "https://predictbase-base.vercel.app",
