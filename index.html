@@ -10,18 +10,18 @@
          Eğer Base App açmıyorsa farcaster.json dosyasında
          "frame" yerine "miniapp" key'i kullan (aşağıda örnek var)
     ═══════════════════════════════════════════════════════════ -->
-    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://predictbase.vercel.app/preview.png","button":{"title":"⚽ Predict & Win USDC","action":{"type":"launch_frame","name":"PredictBase","url":"https://predictbase.vercel.app/","splashImageUrl":"https://predictbase.vercel.app/icon.png","splashBackgroundColor":"#05070a"}}}' />
+    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://predictbase-base.vercel.app/preview.png","button":{"title":"⚽ Predict & Win USDC","action":{"type":"launch_frame","name":"PredictBase","url":"https://predictbase-base.vercel.app/","splashImageUrl":"https://predictbase-base.vercel.app/icon.png","splashBackgroundColor":"#05070a"}}}' />
 
     <!-- OG / Twitter -->
     <meta property="og:title" content="PredictBase — Web3 Football Predictions" />
     <meta property="og:description" content="Predict football scores. Buy tickets. Win USDC on Base chain." />
-    <meta property="og:image" content="https://predictbase.vercel.app/preview.png" />
-    <meta property="og:url" content="https://predictbase.vercel.app" />
+    <meta property="og:image" content="https://predictbase-base.vercel.app/preview.png" />
+    <meta property="og:url" content="https://predictbase-base.vercel.app" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="PredictBase" />
     <meta name="twitter:description" content="Predict football scores. Win USDC on Base." />
-    <meta name="twitter:image" content="https://predictbase.vercel.app/preview.png" />
+    <meta name="twitter:image" content="https://predictbase-base.vercel.app/preview.png" />
 
     <!--
     ═══════════════════════════════════════════════════════════
@@ -32,11 +32,11 @@
       "miniapp": {
         "version": "1",
         "name": "PredictBase",
-        "homeUrl": "https://predictbase.vercel.app",
-        "iconUrl": "https://predictbase.vercel.app/icon.png",
-        "imageUrl": "https://predictbase.vercel.app/preview.png",
+        "homeUrl": "https://predictbase-base.vercel.app",
+        "iconUrl": "https://predictbase-base.vercel.app/icon.png",
+        "imageUrl": "https://predictbase-base.vercel.app/preview.png",
         "buttonTitle": "⚽ Predict & Win USDC",
-        "splashImageUrl": "https://predictbase.vercel.app/icon.png",
+        "splashImageUrl": "https://predictbase-base.vercel.app/icon.png",
         "splashBackgroundColor": "#05070a"
       }
     }
@@ -570,11 +570,11 @@ async function handleBuy() {
 
 // ─── SHARE ───────────────────────────────────────────────────────────────────
 async function shareAfterBuy(match, pred, count, txHash) {
-    const text = `🎯 Just placed ${count} ticket${count > 1 ? 's' : ''} on ${match.home.n} vs ${match.away.n} — predicting ${pred}!\n\n🏆 Win USDC on Base chain at PredictBase\nhttps://predictbase.vercel.app`;
+    const text = `🎯 Just placed ${count} ticket${count > 1 ? 's' : ''} on ${match.home.n} vs ${match.away.n} — predicting ${pred}!\n\n🏆 Win USDC on Base chain at PredictBase\nhttps://predictbase-base.vercel.app`;
     if (IS_FARCASTER) {
         try { await sdk.actions.composeCast({ text }); } catch {}
     } else if (navigator.share) {
-        try { await navigator.share({ title: 'PredictBase', text, url: 'https://predictbase.vercel.app' }); } catch {}
+        try { await navigator.share({ title: 'PredictBase', text, url: 'https://predictbase-base.vercel.app' }); } catch {}
     }
 }
 
@@ -583,11 +583,11 @@ async function handleSharePre() {
     const h    = document.getElementById('s-home').value;
     const a    = document.getElementById('s-away').value;
     const pred = `${h}-${a}`;
-    const text = `👀 I'm about to predict ${selectedMatch.home.n} vs ${selectedMatch.away.n}: ${pred} on PredictBase!\n\nhttps://predictbase.vercel.app`;
+    const text = `👀 I'm about to predict ${selectedMatch.home.n} vs ${selectedMatch.away.n}: ${pred} on PredictBase!\n\nhttps://predictbase-base.vercel.app`;
     if (IS_FARCASTER) {
         try { await sdk.actions.composeCast({ text }); } catch {}
     } else if (navigator.share) {
-        try { await navigator.share({ title: 'PredictBase', text, url: 'https://predictbase.vercel.app' }); } catch {}
+        try { await navigator.share({ title: 'PredictBase', text, url: 'https://predictbase-base.vercel.app' }); } catch {}
     }
 }
 
