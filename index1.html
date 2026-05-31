@@ -3,167 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PredictBase — World Cup 2026</title>
-    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://predictbase-base.vercel.app/preview.png","button":{"title":"⚽ Predict & Win USDC","action":{"type":"launch_frame","name":"PredictBase","url":"https://predictbase-base.vercel.app/","splashImageUrl":"https://predictbase-base.vercel.app/icon.png","splashBackgroundColor":"#05070a"}}}' />
-    
+    <title>PredictBase — WC 2026 Full Season</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --green:  #00e87a;
-            --red:    #ff3355;
-            --bg:     #05070a;
-            --border: rgba(255,255,255,0.07);
-        }
-        body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: white; min-height: 100vh; padding-bottom: 50px; }
+        :root { --green: #00e87a; --bg: #05070a; --border: rgba(255,255,255,0.08); }
+        body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: white; margin: 0; padding-bottom: 80px; }
         .font-display { font-family: 'Barlow Condensed', sans-serif; }
-        .card { background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid var(--border); transition: transform 0.2s; }
-        .card:active { transform: scale(0.98); }
+        .card { background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid var(--border); border-radius: 20px; }
         .neon-g { color: var(--green); text-shadow: 0 0 15px rgba(0,232,122,0.3); }
-        .btn-primary { background: linear-gradient(135deg, #00e87a 0%, #00b85e 100%); color: #03100a; font-weight: 800; cursor: pointer; }
-        .team-orb { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
-        
-        /* SCORE INPUT */
-        .score-box { width: 60px; height: 60px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.15); color: white; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; outline: none; }
-        .score-box:focus { border-color: var(--green); box-shadow: 0 0 12px rgba(0,232,122,0.2); }
-        .type-label { font-size: 8px; color: var(--green); font-weight: 800; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
-
-        /* SEARCH BAR */
-        .search-container { position: sticky; top: 56px; z-index: 40; background: var(--bg); padding: 10px 16px; border-bottom: 1px solid var(--border); }
-        .search-bar { background: rgba(255,255,255,0.06); border: 1px solid var(--border); padding: 12px 16px; border-radius: 14px; width: 100%; color: white; font-size: 13px; }
-
-        .modal-bg { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); align-items: flex-end; justify-content: center; }
+        .btn-primary { background: linear-gradient(135deg, #00e87a 0%, #00b85e 100%); color: #03100a; font-weight: 800; border-radius: 12px; cursor: pointer; border: none; }
+        .score-box { width: 60px; height: 60px; border-radius: 12px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); color: white; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; outline: none; }
+        .score-box:focus { border-color: var(--green); }
+        .type-label { font-size: 8px; color: var(--green); font-weight: 800; text-transform: uppercase; margin-top: 4px; }
+        .team-orb { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .header-wrap { position: sticky; top: 0; z-index: 50; background: rgba(5,7,10,0.96); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+        .search-bar { background: rgba(255,255,255,0.06); border: 1px solid var(--border); padding: 12px 16px; border-radius: 14px; width: 100%; color: white; outline: none; }
+        .modal-bg { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); align-items: flex-end; justify-content: center; }
         .modal-bg.open { display: flex; }
-        .modal-sheet { width: 100%; max-width: 480px; background: #0c1016; border-radius: 28px 28px 0 0; padding: 24px; animation: rise 0.3s ease-out; }
+        .modal-sheet { width: 100%; max-width: 480px; background: #0c1016; border-radius: 28px 28px 0 0; padding: 25px; animation: rise 0.3s ease-out; }
         @keyframes rise { from{transform:translateY(100%)} to{transform:translateY(0)} }
     </style>
 </head>
 <body>
 
-<!-- FIXED HEADER -->
-<div class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-[#05070a]/95 border-b border-white/5 backdrop-blur-md">
-    <div class="font-display text-lg font-black neon-g tracking-tighter uppercase">⚽ WC 2026 PREDICT</div>
-    <div id="wallet-btn" class="border border-green-500/30 bg-green-500/5 px-3 py-1.5 rounded-xl text-[10px] font-bold text-green-400 cursor-pointer">CONNECT WALLET</div>
-</div>
-
-<!-- SEARCH SECTION -->
-<div class="search-container mt-[52px]">
-    <input type="text" id="match-search" class="search-bar" placeholder="Search team (e.g. Mexico, Canada, USA)...">
-</div>
-
-<!-- MATCH LIST -->
-<div class="px-4 py-4">
-    <div id="match-list" class="flex flex-col gap-4 pb-12">
-        <!-- JS Maçları Buraya Dizecek -->
+<div class="header-wrap px-4 py-3">
+    <div class="flex justify-between items-center mb-3">
+        <div class="font-display text-lg font-black neon-g tracking-tighter uppercase">⚽ PREDICTBASE WC2026</div>
+        <div class="text-[9px] font-bold text-green-400 border border-green-500/20 px-3 py-1 rounded-lg uppercase">Connect</div>
     </div>
+    <input type="text" id="match-search" class="search-bar text-xs" placeholder="Search team, group, or stadium (104 matches)...">
 </div>
 
-<!-- PREDICTION MODAL -->
+<div class="px-4 py-4">
+    <div id="match-list" class="flex flex-col gap-4"></div>
+</div>
+
 <div class="modal-bg" id="predict-modal">
     <div class="modal-sheet">
-        <div class="flex justify-between items-center mb-6">
-            <h2 id="modal-title" class="font-display text-xl font-black tracking-wide uppercase">MATCH</h2>
-            <button id="modal-close" class="text-gray-500 text-xl font-black">✕</button>
+        <div class="flex justify-between items-center mb-8">
+            <h2 id="modal-title" class="font-display text-lg font-black uppercase">PREDICT</h2>
+            <button id="modal-close" class="text-gray-500 text-2xl">✕</button>
         </div>
-
-        <div class="flex items-center justify-center gap-6 mb-8">
+        <div class="flex items-center justify-center gap-6 mb-10">
             <div class="flex flex-col items-center">
-                <div id="m-home-flag" class="team-orb mb-3"></div>
+                <div id="m-home-flag" class="team-orb mb-2"></div>
                 <input id="s-home" type="number" class="score-box" value="0">
                 <span class="type-label">Type Score</span>
-                <div id="m-home-code" class="text-[10px] text-gray-400 font-black mt-3 uppercase">MEX</div>
+                <div id="m-home-code" class="text-[10px] text-gray-500 font-black mt-2 uppercase">HOME</div>
             </div>
-            
-            <div class="font-display text-4xl font-black text-gray-700 mt-[-30px]">VS</div>
-            
+            <div class="font-display text-3xl font-black text-gray-800 mt-[-30px]">VS</div>
             <div class="flex flex-col items-center">
-                <div id="m-away-flag" class="team-orb mb-3"></div>
+                <div id="m-away-flag" class="team-orb mb-2"></div>
                 <input id="s-away" type="number" class="score-box" value="0">
                 <span class="type-label">Type Score</span>
-                <div id="m-away-code" class="text-[10px] text-gray-400 font-black mt-3 uppercase">RSA</div>
+                <div id="m-away-code" class="text-[10px] text-gray-500 font-black mt-2 uppercase">AWAY</div>
             </div>
         </div>
-
-        <div class="card rounded-2xl p-4 mb-6 flex justify-between items-center">
-            <span class="text-[10px] font-bold text-gray-500 uppercase">Ticket Price</span>
-            <span class="font-display text-2xl font-black text-white">2.00 USDC</span>
-        </div>
-
-        <button id="buy-btn" class="btn-primary w-full py-4 rounded-2xl font-display text-sm font-black uppercase tracking-widest">
-            Lock Prediction
-        </button>
+        <button class="btn-primary w-full py-4 font-display text-sm uppercase tracking-widest">Confirm Prediction</button>
     </div>
 </div>
 
 <script type="module">
-// GÖRSELDEKİ SIRALAMA VE TURNUVA SONUNA KADAR OLAN MAÇLAR
-const WC_2026_MATCHES = [
-    { id: 1, date: 'Thursday 11 June 2026', time: '23:00', stage: 'First Stage · Group A', stadium: 'Mexico City Stadium', home: { n: 'Mexico', c: 'MEX', f: '🇲🇽' }, away: { n: 'South Africa', c: 'RSA', f: '🇿🇦' } },
-    { id: 2, date: 'Friday 12 June 2026', time: '06:00', stage: 'First Stage · Group A', stadium: 'Guadalajara Stadium', home: { n: 'Korea Republic', c: 'KOR', f: '🇰🇷' }, away: { n: 'Czechia', c: 'CZE', f: '🇨🇿' } },
-    { id: 3, date: 'Friday 12 June 2026', time: '23:00', stage: 'First Stage · Group B', stadium: 'Toronto Stadium', home: { n: 'Canada', c: 'CAN', f: '🇨🇦' }, away: { n: 'Bosnia and Herz.', c: 'BIH', f: '🇧🇦' } },
-    { id: 4, date: 'Saturday 13 June 2026', time: '18:00', stage: 'First Stage · Group B', stadium: 'Vancouver Stadium', home: { n: 'USA', c: 'USA', f: '🇺🇸' }, away: { n: 'Morocco', c: 'MAR', f: '🇲🇦' } },
-    { id: 5, date: 'Sunday 14 June 2026', time: '15:00', stage: 'First Stage · Group C', stadium: 'Miami Stadium', home: { n: 'Brazil', c: 'BRA', f: '🇧🇷' }, away: { n: 'Japan', c: 'JPN', f: '🇯🇵' } },
-    { id: 6, date: 'Monday 15 June 2026', time: '21:00', stage: 'First Stage · Group D', stadium: 'New York Stadium', home: { n: 'England', c: 'ENG', f: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { n: 'Turkey', c: 'TUR', f: '🇹🇷' } },
-    { id: 7, date: 'Tuesday 16 June 2026', time: '19:00', stage: 'First Stage · Group E', stadium: 'Los Angeles Stadium', home: { n: 'France', c: 'FRA', f: '🇫🇷' }, away: { n: 'Argentina', c: 'ARG', f: '🇦🇷' } },
-    // --- Eleme Turları (Round of 32, 16, QF, SF) ---
-    { id: 33, date: 'Sunday 28 June 2026', time: '20:00', stage: 'Round of 32', stadium: 'Houston Stadium', home: { n: 'Winner Gr A', c: 'W1A', f: '?' }, away: { n: 'Runner-up Gr C', c: 'R2C', f: '?' } },
-    { id: 49, date: 'Saturday 4 July 2026', time: '18:00', stage: 'Round of 16', stadium: 'Dallas Stadium', home: { n: 'Winner R32-1', c: 'W49', f: '?' }, away: { n: 'Winner R32-2', c: 'W50', f: '?' } },
-    { id: 60, date: 'Friday 10 July 2026', time: '21:00', stage: 'Quarter-Final', stadium: 'Kansas City Stadium', home: { n: 'Winner R16-1', c: 'QF1', f: '?' }, away: { n: 'Winner R16-2', c: 'QF2', f: '?' } },
-    { id: 70, date: 'Tuesday 14 July 2026', time: '20:00', stage: 'Semi-Final', stadium: 'Atlanta Stadium', home: { n: 'Winner QF1', c: 'SF1', f: '?' }, away: { n: 'Winner QF2', c: 'SF2', f: '?' } },
-    // --- FİNAL ---
-    { id: 104, date: 'Sunday 19 July 2026', time: '20:00', stage: 'WORLD CUP FINAL', stadium: 'MetLife Stadium (NY/NJ)', home: { n: 'Finalist 1', c: 'FIN1', f: '🏆' }, away: { n: 'Finalist 2', c: 'FIN2', f: '🏆' } }
+const MATCHES = [
+    // --- HAZİRAN 11-18 ---
+    { id: 1, date: 'Thu 11 June 2026', time: '23:00', stage: 'Group A', stadium: 'Mexico City', home: { n: 'Mexico', c: 'MEX', f: '🇲🇽' }, away: { n: 'South Africa', c: 'RSA', f: '🇿🇦' } },
+    { id: 2, date: 'Fri 12 June 2026', time: '06:00', stage: 'Group A', stadium: 'Guadalajara', home: { n: 'Korea Republic', c: 'KOR', f: '🇰🇷' }, away: { n: 'Czechia', c: 'CZE', f: '🇨🇿' } },
+    { id: 3, date: 'Fri 12 June 2026', time: '23:00', stage: 'Group B', stadium: 'Toronto', home: { n: 'Canada', c: 'CAN', f: '🇨🇦' }, away: { n: 'Bosnia and Herz.', c: 'BIH', f: '🇧🇦' } },
+    { id: 4, date: 'Sat 13 June 2026', time: '05:00', stage: 'Group D', stadium: 'Los Angeles', home: { n: 'USA', c: 'USA', f: '🇺🇸' }, away: { n: 'Paraguay', c: 'PAR', f: '🇵🇾' } },
+    { id: 5, date: 'Sat 13 June 2026', time: '23:00', stage: 'Group B', stadium: 'San Francisco', home: { n: 'Qatar', c: 'QAT', f: '🇶🇦' }, away: { n: 'Switzerland', c: 'SUI', f: '🇨🇭' } },
+    { id: 6, date: 'Sun 14 June 2026', time: '02:00', stage: 'Group C', stadium: 'New York/NJ', home: { n: 'Brazil', c: 'BRA', f: '🇧🇷' }, away: { n: 'Morocco', c: 'MAR', f: '🇲🇦' } },
+    { id: 7, date: 'Sun 14 June 2026', time: '05:00', stage: 'Group C', stadium: 'Boston', home: { n: 'Haiti', c: 'HAI', f: '🇭🇹' }, away: { n: 'Scotland', c: 'SCO', f: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' } },
+    { id: 8, date: 'Sun 14 June 2026', time: '08:00', stage: 'Group D', stadium: 'Vancouver', home: { n: 'Australia', c: 'AUS', f: '🇦🇺' }, away: { n: 'Türkiye', c: 'TUR', f: '🇹🇷' } },
+    { id: 9, date: 'Sun 14 June 2026', time: '21:00', stage: 'Group E', stadium: 'Houston', home: { n: 'Germany', c: 'GER', f: '🇩🇪' }, away: { n: 'Curaçao', c: 'CUW', f: '🇨🇼' } },
+    { id: 10, date: 'Mon 15 June 2026', time: '00:00', stage: 'Group F', stadium: 'Dallas', home: { n: 'Netherlands', c: 'NED', f: '🇳🇱' }, away: { n: 'Japan', c: 'JPN', f: '🇯🇵' } },
+    { id: 11, date: 'Mon 15 June 2026', time: '03:00', stage: 'Group E', stadium: 'Philadelphia', home: { n: "Côte d'Ivoire", c: 'CIV', f: '🇨🇮' }, away: { n: 'Ecuador', c: 'ECU', f: '🇪🇨' } },
+    { id: 12, date: 'Mon 15 June 2026', time: '06:00', stage: 'Group F', stadium: 'Monterrey', home: { n: 'Sweden', c: 'SWE', f: '🇸🇪' }, away: { n: 'Tunisia', c: 'TUN', f: '🇹🇳' } },
+    { id: 13, date: 'Mon 15 June 2026', time: '20:00', stage: 'Group H', stadium: 'Atlanta', home: { n: 'Spain', c: 'ESP', f: '🇪🇸' }, away: { n: 'Cabo Verde', c: 'CPV', f: '🇨🇻' } },
+    { id: 14, date: 'Mon 15 June 2026', time: '23:00', stage: 'Group G', stadium: 'Seattle', home: { n: 'Belgium', c: 'BEL', f: '🇧🇪' }, away: { n: 'Egypt', c: 'EGY', f: '🇪🇬' } },
+    { id: 15, date: 'Tue 16 June 2026', time: '02:00', stage: 'Group H', stadium: 'Miami', home: { n: 'Saudi Arabia', c: 'KSA', f: '🇸🇦' }, away: { n: 'Uruguay', c: 'URU', f: '🇺🇾' } },
+    { id: 16, date: 'Tue 16 June 2026', time: '05:00', stage: 'Group G', stadium: 'Los Angeles', home: { n: 'IR Iran', c: 'IRN', f: '🇮🇷' }, away: { n: 'New Zealand', c: 'NZL', f: '🇳🇿' } },
+    { id: 17, date: 'Tue 16 June 2026', time: '23:00', stage: 'Group I', stadium: 'New York/NJ', home: { n: 'France', c: 'FRA', f: '🇫🇷' }, away: { n: 'Senegal', c: 'SEN', f: '🇸🇳' } },
+    { id: 18, date: 'Wed 17 June 2026', time: '02:00', stage: 'Group I', stadium: 'Boston', home: { n: 'Iraq', c: 'IRQ', f: '🇮🇶' }, away: { n: 'Norway', c: 'NOR', f: '🇳🇴' } },
+    { id: 19, date: 'Wed 17 June 2026', time: '05:00', stage: 'Group J', stadium: 'Kansas City', home: { n: 'Argentina', c: 'ARG', f: '🇦🇷' }, away: { n: 'Algeria', c: 'ALG', f: '🇩🇿' } },
+    { id: 20, date: 'Wed 17 June 2026', time: '08:00', stage: 'Group J', stadium: 'San Francisco', home: { n: 'Austria', c: 'AUT', f: '🇦🇹' }, away: { n: 'Jordan', c: 'JOR', f: '🇯🇴' } },
+    { id: 21, date: 'Wed 17 June 2026', time: '21:00', stage: 'Group K', stadium: 'Houston', home: { n: 'Portugal', c: 'POR', f: '🇵🇹' }, away: { n: 'Congo DR', c: 'COD', f: '🇨🇩' } },
+    { id: 22, date: 'Thu 18 June 2026', time: '00:00', stage: 'Group L', stadium: 'Dallas', home: { n: 'England', c: 'ENG', f: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { n: 'Croatia', c: 'CRO', f: '🇭🇷' } },
+    { id: 23, date: 'Thu 18 June 2026', time: '03:00', stage: 'Group L', stadium: 'Toronto', home: { n: 'Ghana', c: 'GHA', f: '🇬🇭' }, away: { n: 'Panama', c: 'PAN', f: '🇵🇦' } },
+    { id: 24, date: 'Thu 18 June 2026', time: '06:00', stage: 'Group K', stadium: 'Mexico City', home: { n: 'Uzbekistan', c: 'UZB', f: '🇺🇿' }, away: { n: 'Colombia', c: 'COL', f: '🇨🇴' } },
+    { id: 25, date: 'Thu 18 June 2026', time: '20:00', stage: 'Group A', stadium: 'Atlanta', home: { n: 'Czechia', c: 'CZE', f: '🇨🇿' }, away: { n: 'South Africa', c: 'RSA', f: '🇿🇦' } },
+    { id: 26, date: 'Thu 18 June 2026', time: '23:00', stage: 'Group B', stadium: 'Los Angeles', home: { n: 'Switzerland', c: 'SUI', f: '🇨🇭' }, away: { n: 'Bosnia', c: 'BIH', f: '🇧🇦' } },
+
+    // --- HAZİRAN 19-28 ---
+    { id: 27, date: 'Fri 19 June 2026', time: '02:00', stage: 'Group B', stadium: 'Vancouver', home: { n: 'Canada', c: 'CAN', f: '🇨🇦' }, away: { n: 'Qatar', c: 'QAT', f: '🇶🇦' } },
+    { id: 28, date: 'Fri 19 June 2026', time: '05:00', stage: 'Group A', stadium: 'Guadalajara', home: { n: 'Mexico', c: 'MEX', f: '🇲🇽' }, away: { n: 'Korea Rep.', c: 'KOR', f: '🇰🇷' } },
+    { id: 29, date: 'Fri 19 June 2026', time: '23:00', stage: 'Group D', stadium: 'Seattle', home: { n: 'USA', c: 'USA', f: '🇺🇸' }, away: { n: 'Australia', c: 'AUS', f: '🇦🇺' } },
+    { id: 30, date: 'Sat 20 June 2026', time: '02:00', stage: 'Group C', stadium: 'Boston', home: { n: 'Scotland', c: 'SCO', f: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' }, away: { n: 'Morocco', c: 'MAR', f: '🇲🇦' } },
+    { id: 31, date: 'Sat 20 June 2026', time: '04:30', stage: 'Group C', stadium: 'Philadelphia', home: { n: 'Brazil', c: 'BRA', f: '🇧🇷' }, away: { n: 'Haiti', c: 'HAI', f: '🇭🇹' } },
+    { id: 32, date: 'Sat 20 June 2026', time: '07:00', stage: 'Group D', stadium: 'San Francisco', home: { n: 'Türkiye', c: 'TUR', f: '🇹🇷' }, away: { n: 'Paraguay', c: 'PAR', f: '🇵🇾' } },
+    { id: 33, date: 'Sat 20 June 2026', time: '21:00', stage: 'Group F', stadium: 'Houston', home: { n: 'Netherlands', c: 'NED', f: '🇳🇱' }, away: { n: 'Sweden', c: 'SWE', f: '🇸🇪' } },
+    { id: 34, date: 'Sun 21 June 2026', time: '00:00', stage: 'Group E', stadium: 'Toronto', home: { n: 'Germany', c: 'GER', f: '🇩🇪' }, away: { n: 'Côte d’Ivoire', c: 'CIV', f: '🇨🇮' } },
+    { id: 35, date: 'Sun 21 June 2026', time: '04:00', stage: 'Group E', stadium: 'Kansas City', home: { n: 'Ecuador', c: 'ECU', f: '🇪🇨' }, away: { n: 'Curaçao', c: 'CUW', f: '🇨🇼' } },
+    { id: 36, date: 'Sun 21 June 2026', time: '08:00', stage: 'Group F', stadium: 'Monterrey', home: { n: 'Tunisia', c: 'TUN', f: '🇹🇳' }, away: { n: 'Japan', c: 'JPN', f: '🇯🇵' } },
+    { id: 37, date: 'Sun 21 June 2026', time: '20:00', stage: 'Group H', stadium: 'Atlanta', home: { n: 'Spain', c: 'ESP', f: '🇪🇸' }, away: { n: 'Saudi Arabia', c: 'KSA', f: '🇸🇦' } },
+    { id: 38, date: 'Sun 21 June 2026', time: '23:00', stage: 'Group G', stadium: 'Los Angeles', home: { n: 'Belgium', c: 'BEL', f: '🇧🇪' }, away: { n: 'IR Iran', c: 'IRN', f: '🇮🇷' } },
+    { id: 39, date: 'Mon 22 June 2026', time: '02:00', stage: 'Group H', stadium: 'Miami', home: { n: 'Uruguay', c: 'URU', f: '🇺🇾' }, away: { n: 'Cabo Verde', c: 'CPV', f: '🇨🇻' } },
+    { id: 40, date: 'Mon 22 June 2026', time: '05:00', stage: 'Group G', stadium: 'Vancouver', home: { n: 'New Zealand', c: 'NZL', f: '🇳🇿' }, away: { n: 'Egypt', c: 'EGY', f: '🇪🇬' } },
+    { id: 41, date: 'Mon 22 June 2026', time: '21:00', stage: 'Group J', stadium: 'Dallas', home: { n: 'Argentina', c: 'ARG', f: '🇦🇷' }, away: { n: 'Austria', c: 'AUT', f: '🇦🇹' } },
+    { id: 42, date: 'Tue 23 June 2026', time: '01:00', stage: 'Group I', stadium: 'Philadelphia', home: { n: 'France', c: 'FRA', f: '🇫🇷' }, away: { n: 'Iraq', c: 'IRQ', f: '🇮🇶' } },
+    { id: 43, date: 'Tue 23 June 2026', time: '04:00', stage: 'Group I', stadium: 'New York/NJ', home: { n: 'Norway', c: 'NOR', f: '🇳🇴' }, away: { n: 'Senegal', c: 'SEN', f: '🇸🇳' } },
+    { id: 44, date: 'Tue 23 June 2026', time: '07:00', stage: 'Group J', stadium: 'San Francisco', home: { n: 'Jordan', c: 'JOR', f: '🇯🇴' }, away: { n: 'Algeria', c: 'ALG', f: '🇩🇿' } },
+    { id: 45, date: 'Tue 23 June 2026', time: '21:00', stage: 'Group K', stadium: 'Houston', home: { n: 'Portugal', c: 'POR', f: '🇵🇹' }, away: { n: 'Uzbekistan', c: 'UZB', f: '🇺🇿' } },
+    { id: 46, date: 'Wed 24 June 2026', time: '00:00', stage: 'Group L', stadium: 'Boston', home: { n: 'England', c: 'ENG', f: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { n: 'Ghana', c: 'GHA', f: '🇬🇭' } },
+    { id: 47, date: 'Wed 24 June 2026', time: '03:00', stage: 'Group L', stadium: 'Toronto', home: { n: 'Panama', c: 'PAN', f: '🇵🇦' }, away: { n: 'Croatia', c: 'CRO', f: '🇭🇷' } },
+    { id: 48, date: 'Wed 24 June 2026', time: '06:00', stage: 'Group K', stadium: 'Guadalajara', home: { n: 'Colombia', c: 'COL', f: '🇨🇴' }, away: { n: 'Congo DR', c: 'COD', f: '🇨🇩' } },
+    { id: 49, date: 'Wed 24 June 2026', time: '23:00', stage: 'Group B', stadium: 'Vancouver', home: { n: 'Switzerland', c: 'SUI', f: '🇨🇭' }, away: { n: 'Canada', c: 'CAN', f: '🇨🇦' } },
+    { id: 50, date: 'Wed 24 June 2026', time: '23:00', stage: 'Group B', stadium: 'Seattle', home: { n: 'Bosnia', c: 'BIH', f: '🇧🇦' }, away: { n: 'Qatar', c: 'QAT', f: '🇶🇦' } },
+    { id: 51, date: 'Thu 25 June 2026', time: '02:00', stage: 'Group C', stadium: 'Miami', home: { n: 'Scotland', c: 'SCO', f: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' }, away: { n: 'Brazil', c: 'BRA', f: '🇧🇷' } },
+    { id: 52, date: 'Thu 25 June 2026', time: '02:00', stage: 'Group C', stadium: 'Atlanta', home: { n: 'Morocco', c: 'MAR', f: '🇲🇦' }, away: { n: 'Haiti', c: 'HAI', f: '🇭🇹' } },
+    { id: 53, date: 'Thu 25 June 2026', time: '05:00', stage: 'Group A', stadium: 'Mexico City', home: { n: 'Czechia', c: 'CZE', f: '🇨🇿' }, away: { n: 'Mexico', c: 'MEX', f: '🇲🇽' } },
+    { id: 54, date: 'Thu 25 June 2026', time: '05:00', stage: 'Group A', stadium: 'Monterrey', home: { n: 'South Africa', c: 'RSA', f: '🇿🇦' }, away: { n: 'Korea Rep.', c: 'KOR', f: '🇰🇷' } },
+    { id: 55, date: 'Fri 26 June 2026', time: '00:00', stage: 'Group E', stadium: 'Philadelphia', home: { n: 'Curaçao', c: 'CUW', f: '🇨🇼' }, away: { n: 'Côte d’Ivoire', c: 'CIV', f: '🇨🇮' } },
+    { id: 56, date: 'Fri 26 June 2026', time: '00:00', stage: 'Group E', stadium: 'New York/NJ', home: { n: 'Ecuador', c: 'ECU', f: '🇪🇨' }, away: { n: 'Germany', c: 'GER', f: '🇩🇪' } },
+    { id: 57, date: 'Fri 26 June 2026', time: '03:00', stage: 'Group F', stadium: 'Dallas', home: { n: 'Japan', c: 'JPN', f: '🇯🇵' }, away: { n: 'Sweden', c: 'SWE', f: '🇸🇪' } },
+    { id: 58, date: 'Fri 26 June 2026', time: '03:00', stage: 'Group F', stadium: 'Kansas City', home: { n: 'Tunisia', c: 'TUN', f: '🇹🇳' }, away: { n: 'Netherlands', c: 'NED', f: '🇳🇱' } },
+    { id: 59, date: 'Fri 26 June 2026', time: '06:00', stage: 'Group D', stadium: 'Los Angeles', home: { n: 'Türkiye', c: 'TUR', f: '🇹🇷' }, away: { n: 'USA', c: 'USA', f: '🇺🇸' } },
+    { id: 60, date: 'Fri 26 June 2026', time: '06:00', stage: 'Group D', stadium: 'San Francisco', home: { n: 'Paraguay', c: 'PAR', f: '🇵🇾' }, away: { n: 'Australia', c: 'AUS', f: '🇦🇺' } },
+    { id: 61, date: 'Fri 26 June 2026', time: '23:00', stage: 'Group I', stadium: 'Boston', home: { n: 'Norway', c: 'NOR', f: '🇳🇴' }, away: { n: 'France', c: 'FRA', f: '🇫🇷' } },
+    { id: 62, date: 'Fri 26 June 2026', time: '23:00', stage: 'Group I', stadium: 'Toronto', home: { n: 'Senegal', c: 'SEN', f: '🇸🇳' }, away: { n: 'Iraq', c: 'IRQ', f: '🇮🇶' } },
+    { id: 63, date: 'Sat 27 June 2026', time: '04:00', stage: 'Group H', stadium: 'Houston', home: { n: 'Cabo Verde', c: 'CPV', f: '🇨🇻' }, away: { n: 'Saudi Arabia', c: 'KSA', f: '🇸🇦' } },
+    { id: 64, date: 'Sat 27 June 2026', time: '04:00', stage: 'Group H', stadium: 'Guadalajara', home: { n: 'Uruguay', c: 'URU', f: '🇺🇾' }, away: { n: 'Spain', c: 'ESP', f: '🇪🇸' } },
+    { id: 65, date: 'Sat 27 June 2026', time: '07:00', stage: 'Group G', stadium: 'Seattle', home: { n: 'Egypt', c: 'EGY', f: '🇪🇬' }, away: { n: 'IR Iran', c: 'IRN', f: '🇮🇷' } },
+    { id: 66, date: 'Sat 27 June 2026', time: '07:00', stage: 'Group G', stadium: 'Vancouver', home: { n: 'New Zealand', c: 'NZL', f: '🇳🇿' }, away: { n: 'Belgium', c: 'BEL', f: '🇧🇪' } },
+    { id: 67, date: 'Sun 28 June 2026', time: '01:00', stage: 'Group L', stadium: 'New York/NJ', home: { n: 'Panama', c: 'PAN', f: '🇵🇦' }, away: { n: 'England', c: 'ENG', f: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' } },
+    { id: 68, date: 'Sun 28 June 2026', time: '01:00', stage: 'Group L', stadium: 'Philadelphia', home: { n: 'Croatia', c: 'CRO', f: '🇭🇷' }, away: { n: 'Ghana', c: 'GHA', f: '🇬🇭' } },
+    { id: 69, date: 'Sun 28 June 2026', time: '03:30', stage: 'Group K', stadium: 'Miami', home: { n: 'Colombia', c: 'COL', f: '🇨🇴' }, away: { n: 'Portugal', c: 'POR', f: '🇵🇹' } },
+    { id: 70, date: 'Sun 28 June 2026', time: '03:30', stage: 'Group K', stadium: 'Atlanta', home: { n: 'Congo DR', c: 'COD', f: '🇨🇩' }, away: { n: 'Uzbekistan', c: 'UZB', f: '🇺🇿' } },
+    { id: 71, date: 'Sun 28 June 2026', time: '06:00', stage: 'Group J', stadium: 'Kansas City', home: { n: 'Algeria', c: 'ALG', f: '🇩🇿' }, away: { n: 'Austria', c: 'AUT', f: '🇦🇹' } },
+    { id: 72, date: 'Sun 28 June 2026', time: '06:00', stage: 'Group J', stadium: 'Dallas', home: { n: 'Jordan', c: 'JOR', f: '🇯🇴' }, away: { n: 'Argentina', c: 'ARG', f: '🇦🇷' } },
+
+    // --- ROUND OF 32 ---
+    { id: 73, date: 'Sun 28 June 2026', time: '23:00', stage: 'Round of 32', stadium: 'Los Angeles', home: { n: '2A', c: '2A', f: '🏳️' }, away: { n: '2B', c: '2B', f: '🏳️' } },
+    { id: 74, date: 'Mon 29 June 2026', time: '21:00', stage: 'Round of 32', stadium: 'Houston', home: { n: '1C', c: '1C', f: '🏳️' }, away: { n: '2F', c: '2F', f: '🏳️' } },
+    { id: 75, date: 'Tue 30 June 2026', time: '00:30', stage: 'Round of 32', stadium: 'Boston', home: { n: '1E', c: '1E', f: '🏳️' }, away: { n: '3ABCDF', c: '3RD', f: '🏳️' } },
+    { id: 76, date: 'Tue 30 June 2026', time: '05:00', stage: 'Round of 32', stadium: 'Monterrey', home: { n: '1F', c: '1F', f: '🏳️' }, away: { n: '2C', c: '2C', f: '🏳️' } },
+    { id: 77, date: 'Tue 30 June 2026', time: '21:00', stage: 'Round of 32', stadium: 'Dallas', home: { n: '2E', c: '2E', f: '🏳️' }, away: { n: '2I', c: '2I', f: '🏳️' } },
+    { id: 78, date: 'Wed 01 July 2026', time: '01:00', stage: 'Round of 32', stadium: 'New York/NJ', home: { n: '1I', c: '1I', f: '🏳️' }, away: { n: '3CDFGH', c: '3RD', f: '🏳️' } },
+    { id: 79, date: 'Wed 01 July 2026', time: '05:00', stage: 'Round of 32', stadium: 'Mexico City', home: { n: '1A', c: '1A', f: '🏳️' }, away: { n: '3CEFHI', c: '3RD', f: '🏳️' } },
+    { id: 80, date: 'Wed 01 July 2026', time: '20:00', stage: 'Round of 32', stadium: 'Atlanta', home: { n: '1L', c: '1L', f: '🏳️' }, away: { n: '3EHIJK', c: '3RD', f: '🏳️' } },
+    { id: 81, date: 'Thu 02 July 2026', time: '00:00', stage: 'Round of 32', stadium: 'Seattle', home: { n: '1G', c: '1G', f: '🏳️' }, away: { n: '3AEHIJ', c: '3RD', f: '🏳️' } },
+    { id: 82, date: 'Thu 02 July 2026', time: '04:00', stage: 'Round of 32', stadium: 'San Francisco', home: { n: '1D', c: '1D', f: '🏳️' }, away: { n: '3BEFIJ', c: '3RD', f: '🏳️' } },
+    { id: 83, date: 'Thu 02 July 2026', time: '23:00', stage: 'Round of 32', stadium: 'Los Angeles', home: { n: '1H', c: '1H', f: '🏳️' }, away: { n: '2J', c: '2J', f: '🏳️' } },
+    { id: 84, date: 'Fri 03 July 2026', time: '03:00', stage: 'Round of 32', stadium: 'Toronto', home: { n: '2K', c: '2K', f: '🏳️' }, away: { n: '2L', c: '2L', f: '🏳️' } },
+    { id: 85, date: 'Fri 03 July 2026', time: '07:00', stage: 'Round of 32', stadium: 'Vancouver', home: { n: '1B', c: '1B', f: '🏳️' }, away: { n: '3EFGIJ', c: '3RD', f: '🏳️' } },
+    { id: 86, date: 'Fri 03 July 2026', time: '22:00', stage: 'Round of 32', stadium: 'Dallas', home: { n: '2D', c: '2D', f: '🏳️' }, away: { n: '2G', c: '2G', f: '🏳️' } },
+    { id: 87, date: 'Sat 04 July 2026', time: '02:00', stage: 'Round of 32', stadium: 'Miami', home: { n: '1J', c: '1J', f: '🏳️' }, away: { n: '2H', c: '2H', f: '🏳️' } },
+    { id: 88, date: 'Sat 04 July 2026', time: '05:30', stage: 'Round of 32', stadium: 'Kansas City', home: { n: '1K', c: '1K', f: '🏳️' }, away: { n: '3DEIJL', c: '3RD', f: '🏳️' } },
+
+    // --- ROUND OF 16 ---
+    { id: 89, date: 'Sat 04 July 2026', time: '21:00', stage: 'Round of 16', stadium: 'Houston', home: { n: 'W73', c: 'W73', f: '?' }, away: { n: 'W75', c: 'W75', f: '?' } },
+    { id: 90, date: 'Sun 05 July 2026', time: '01:00', stage: 'Round of 16', stadium: 'Philadelphia', home: { n: 'W74', c: 'W74', f: '?' }, away: { n: 'W77', c: 'W77', f: '?' } },
+    { id: 91, date: 'Mon 06 July 2026', time: '00:00', stage: 'Round of 16', stadium: 'New York/NJ', home: { n: 'W76', c: 'W76', f: '?' }, away: { n: 'W78', c: 'W78', f: '?' } },
+    { id: 92, date: 'Mon 06 July 2026', time: '04:00', stage: 'Round of 16', stadium: 'Mexico City', home: { n: 'W79', c: 'W79', f: '?' }, away: { n: 'W80', c: 'W80', f: '?' } },
+    { id: 93, date: 'Mon 06 July 2026', time: '23:00', stage: 'Round of 16', stadium: 'Dallas', home: { n: 'W83', c: 'W83', f: '?' }, away: { n: 'W84', c: 'W84', f: '?' } },
+    { id: 94, date: 'Tue 07 July 2026', time: '04:00', stage: 'Round of 16', stadium: 'Seattle', home: { n: 'W81', c: 'W81', f: '?' }, away: { n: 'W82', c: 'W82', f: '?' } },
+    { id: 95, date: 'Tue 07 July 2026', time: '20:00', stage: 'Round of 16', stadium: 'Atlanta', home: { n: 'W86', c: 'W86', f: '?' }, away: { n: 'W88', c: 'W88', f: '?' } },
+    { id: 96, date: 'Wed 08 July 2026', time: '00:00', stage: 'Round of 16', stadium: 'Vancouver', home: { n: 'W85', c: 'W85', f: '?' }, away: { n: 'W87', c: 'W87', f: '?' } },
+
+    // --- QUARTER FINALS ---
+    { id: 97, date: 'Fri 10 July 2026', time: '00:00', stage: 'Quarter-final', stadium: 'Boston', home: { n: 'W89', c: 'W89', f: '?' }, away: { n: 'W90', c: 'W90', f: '?' } },
+    { id: 98, date: 'Fri 10 July 2026', time: '23:00', stage: 'Quarter-final', stadium: 'Los Angeles', home: { n: 'W93', c: 'W93', f: '?' }, away: { n: 'W94', c: 'W94', f: '?' } },
+    { id: 99, date: 'Sun 12 July 2026', time: '01:00', stage: 'Quarter-final', stadium: 'Miami', home: { n: 'W91', c: 'W91', f: '?' }, away: { n: 'W92', c: 'W92', f: '?' } },
+    { id: 100, date: 'Sun 12 July 2026', time: '05:00', stage: 'Quarter-final', stadium: 'Kansas City', home: { n: 'W95', c: 'W95', f: '?' }, away: { n: 'W96', c: 'W96', f: '?' } },
+
+    // --- SEMI FINALS ---
+    { id: 101, date: 'Tue 14 July 2026', time: '23:00', stage: 'Semi-final', stadium: 'Dallas', home: { n: 'W97', c: 'W97', f: '?' }, away: { n: 'W98', c: 'W98', f: '?' } },
+    { id: 102, date: 'Wed 15 July 2026', time: '23:00', stage: 'Semi-final', stadium: 'Atlanta', home: { n: 'W99', c: 'W99', f: '?' }, away: { n: 'W100', c: 'W100', f: '?' } },
+
+    // --- FINALS ---
+    { id: 103, date: 'Sun 18 July 2026', time: '01:00', stage: 'Third Place', stadium: 'Miami', home: { n: 'RU101', c: 'RU1', f: '🥉' }, away: { n: 'RU102', c: 'RU2', f: '🥉' } },
+    { id: 104, date: 'Sun 19 July 2026', time: '23:00', stage: 'FINAL', stadium: 'New York/NJ', home: { n: 'W101', c: 'W101', f: '🏆' }, away: { n: 'W102', c: 'W102', f: '🏆' } }
 ];
 
-function renderMatches(filter = "") {
+function render(filter = "") {
     const list = document.getElementById('match-list');
-    const filtered = WC_2026_MATCHES.filter(m => 
+    const filtered = MATCHES.filter(m => 
         m.home.n.toLowerCase().includes(filter.toLowerCase()) || 
         m.away.n.toLowerCase().includes(filter.toLowerCase()) ||
         m.stage.toLowerCase().includes(filter.toLowerCase())
     );
 
     list.innerHTML = filtered.map(m => `
-        <div class="card rounded-[24px] p-5 flex flex-col gap-4">
-            <div class="flex justify-between items-start">
-                <div>
-                    <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest">${m.stage}</div>
-                    <div class="text-[9px] font-bold text-gray-600 mt-0.5">${m.stadium}</div>
-                </div>
-                <div class="text-right">
-                    <div class="text-[10px] font-bold text-white">${m.date}</div>
-                    <div class="text-[11px] font-black text-green-400 mt-0.5">${m.time}</div>
-                </div>
+        <div class="card p-4 flex flex-col gap-3">
+            <div class="flex justify-between items-start text-[8px] font-bold text-gray-500 uppercase tracking-widest">
+                <div>${m.stage} • ${m.stadium}</div>
+                <div class="text-green-500">${m.date} • ${m.time}</div>
             </div>
-            
-            <div class="flex items-center justify-between px-2">
-                <div class="flex flex-col items-center w-[40%] gap-2">
+            <div class="flex items-center justify-between">
+                <div class="flex flex-col items-center w-[40%] gap-1">
                     <div class="team-orb">${m.home.f}</div>
-                    <div class="font-display text-sm font-black uppercase text-center leading-tight">${m.home.n}</div>
+                    <div class="font-display text-[11px] font-black uppercase text-center leading-tight">${m.home.n}</div>
                 </div>
-                <div class="font-display text-2xl font-black text-gray-700">VS</div>
-                <div class="flex flex-col items-center w-[40%] gap-2">
+                <div class="font-display text-xl font-black text-gray-800">VS</div>
+                <div class="flex flex-col items-center w-[40%] gap-1">
                     <div class="team-orb">${m.away.f}</div>
-                    <div class="font-display text-sm font-black uppercase text-center leading-tight">${m.away.n}</div>
+                    <div class="font-display text-[11px] font-black uppercase text-center leading-tight">${m.away.n}</div>
                 </div>
             </div>
-
-            <div class="flex justify-between items-center border-t border-white/5 pt-4">
-                <div class="flex flex-col">
-                    <span class="text-[9px] font-bold text-gray-500 uppercase">Pool: 0 USDC</span>
-                    <span class="text-[9px] font-bold text-gray-500 uppercase">0 Tickets sold</span>
-                </div>
-                <button onclick="window.openModal(${m.id})" class="btn-primary px-7 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider">
-                    Predict
-                </button>
+            <div class="flex justify-between items-center border-t border-white/5 pt-3">
+                <div class="text-[8px] font-bold text-gray-600 uppercase">Pool: 0 USDC</div>
+                <button onclick="window.openModal(${m.id})" class="btn-primary px-6 py-2 text-[10px] uppercase">Predict</button>
             </div>
         </div>
     `).join('');
 }
 
 window.openModal = (id) => {
-    const m = WC_2026_MATCHES.find(x => x.id === id);
+    const m = MATCHES.find(x => x.id === id);
     document.getElementById('modal-title').innerText = `${m.home.c} VS ${m.away.c}`;
     document.getElementById('m-home-flag').innerText = m.home.f;
     document.getElementById('m-away-flag').innerText = m.away.f;
@@ -174,16 +230,10 @@ window.openModal = (id) => {
     document.getElementById('predict-modal').classList.add('open');
 };
 
-document.getElementById('modal-close').onclick = () => {
-    document.getElementById('predict-modal').classList.remove('open');
-};
+document.getElementById('modal-close').onclick = () => document.getElementById('predict-modal').classList.remove('open');
+document.getElementById('match-search').oninput = (e) => render(e.target.value);
 
-document.getElementById('match-search').oninput = (e) => {
-    renderMatches(e.target.value);
-};
-
-// Başlat
-renderMatches();
+render();
 </script>
 </body>
 </html>
