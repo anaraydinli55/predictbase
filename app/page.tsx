@@ -1,193 +1,351 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 
-// --- VERİ YAPISI ---
-const INITIAL_MATCHES = [
-    { id: 1, externalId: "1001", date: 'Thursday 11 June 2026', timestamp: new Date('2026-06-11T23:00:00Z').getTime(), stage: 'Group A', stadium: 'Mexico City', home: { n: 'Mexico', c: 'MEX', f: '🇲🇽' }, away: { n: 'South Africa', c: 'RSA', f: '🇿🇦' }, result: null, events: [] },
-    { id: 2, externalId: "1002", date: 'Friday 12 June 2026', timestamp: new Date('2026-06-12T06:00:00Z').getTime(), stage: 'Group A', stadium: 'Guadalajara', home: { n: 'Korea Republic', c: 'KOR', f: '🇰🇷' }, away: { n: 'Czechia', c: 'CZE', f: '🇨🇿' }, result: null, events: [] },
-    { id: 3, externalId: "1003", date: 'Friday 12 June 2026', timestamp: new Date('2026-06-12T23:00:00Z').getTime(), stage: 'Group B', stadium: 'Toronto', home: { n: 'Canada', c: 'CAN', f: '🇨🇦' }, away: { n: 'Bosnia and Herz.', c: 'BIH', f: '🇧🇦' }, result: null, events: [] },
-    // Diğer 101 maç buraya aynı formatta eklenecek...
+// --- TYPES ---
+interface GoalEvent {
+  player: string;
+  minute: number;
+}
+
+interface Match {
+  id: number;
+  externalId: string;
+  date: string;
+  time: string;
+  timestamp: number;
+  stage: string;
+  stadium: string;
+  home: { n: string; c: string; f: string };
+  away: { n: string; c: string; f: string };
+  result: string | null;
+  events: GoalEvent[];
+}
+
+interface Prediction {
+  matchId: number;
+  pred: string;
+  status: 'win' | 'lost' | 'pend';
+  payout: number;
+  timestamp: number;
+}
+
+// --- INITIAL MATCH DATA (104 Maçlık Listenin Tamamı) ---
+const INITIAL_MATCHES: Match[] = [
+    { id: 1, externalId: "74321", date: 'Thursday 11 June 2026', time: '23:00', timestamp: new Date('2026-06-11T23:00:00Z').getTime(), stage: 'Group A', stadium: 'Mexico City', home: { n: 'Mexico', c: 'MEX', f: '🇲🇽' }, away: { n: 'South Africa', c: 'RSA', f: '🇿🇦' }, result: null, events: [] },
+    { id: 2, externalId: "74322", date: 'Friday 12 June 2026', time: '06:00', timestamp: new Date('2026-06-12T06:00:00Z').getTime(), stage: 'Group A', stadium: 'Guadalajara', home: { n: 'Korea Republic', c: 'KOR', f: '🇰🇷' }, away: { n: 'Czechia', c: 'CZE', f: '🇨🇿' }, result: null, events: [] },
+    { id: 3, externalId: "74323", date: 'Friday 12 June 2026', time: '23:00', timestamp: new Date('2026-06-12T23:00:00Z').getTime(), stage: 'Group B', stadium: 'Toronto', home: { n: 'Canada', c: 'CAN', f: '🇨🇦' }, away: { n: 'Bosnia and Herz.', c: 'BIH', f: '🇧🇦' }, result: null, events: [] },
+    { id: 4, externalId: "74324", date: 'Saturday 13 June 2026', time: '05:00', timestamp: new Date('2026-06-13T05:00:00Z').getTime(), stage: 'Group D', stadium: 'Los Angeles', home: { n: 'USA', c: 'USA', f: '🇺🇸' }, away: { n: 'Paraguay', c: 'PAR', f: '🇵🇾' }, result: null, events: [] },
+    { id: 5, externalId: "74325", date: 'Saturday 13 June 2026', time: '23:00', timestamp: new Date('2026-06-13T23:00:00Z').getTime(), stage: 'Group B', stadium: 'San Francisco', home: { n: 'Qatar', c: 'QAT', f: '🇶🇦' }, away: { n: 'Switzerland', c: 'SUI', f: '🇨🇭' }, result: null, events: [] },
+    { id: 6, externalId: "74326", date: 'Sunday 14 June 2026', time: '02:00', timestamp: new Date('2026-06-14T02:00:00Z').getTime(), stage: 'Group C', stadium: 'New York/NJ', home: { n: 'Brazil', c: 'BRA', f: '🇧🇷' }, away: { n: 'Morocco', c: 'MAR', f: '🇲🇦' }, result: null, events: [] },
+    { id: 7, externalId: "74327", date: 'Sunday 14 June 2026', time: '05:00', timestamp: new Date('2026-06-14T05:00:00Z').getTime(), stage: 'Group C', stadium: 'Boston', home: { n: 'Haiti', c: 'HAI', f: '🇭🇹' }, away: { n: 'Scotland', c: 'SCO', f: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' }, result: null, events: [] },
+    { id: 8, externalId: "74328", date: 'Sunday 14 June 2026', time: '08:00', timestamp: new Date('2026-06-14T08:00:00Z').getTime(), stage: 'Group D', stadium: 'BC Place Vancouver', home: { n: 'Australia', c: 'AUS', f: '🇦🇺' }, away: { n: 'Türkiye', c: 'TUR', f: '🇹🇷' }, result: null, events: [] },
+    { id: 9, externalId: "74329", date: 'Sunday 14 June 2026', time: '21:00', timestamp: new Date('2026-06-14T21:00:00Z').getTime(), stage: 'Group E', stadium: 'Houston', home: { n: 'Germany', c: 'GER', f: '🇩🇪' }, away: { n: 'Curaçao', c: 'CUW', f: '🇨🇼' }, result: null, events: [] },
+    { id: 10, externalId: "74330", date: 'Monday 15 June 2026', time: '00:00', timestamp: new Date('2026-06-15T00:00:00Z').getTime(), stage: 'Group F', stadium: 'Dallas', home: { n: 'Netherlands', c: 'NED', f: '🇳🇱' }, away: { n: 'Japan', c: 'JPN', f: '🇯🇵' }, result: null, events: [] },
+ { id: 11, date: 'Mon 15 June 2026', time: '03:00', stage: 'Group E', stadium: 'Philadelphia', home: { n: "Côte d'Ivoire", c: 'CIV', f: '🇨🇮' }, away: { n: 'Ecuador', c: 'ECU', f: '🇪🇨' } },
+    { id: 12, date: 'Mon 15 June 2026', time: '06:00', stage: 'Group F', stadium: 'Monterrey', home: { n: 'Sweden', c: 'SWE', f: '🇸🇪' }, away: { n: 'Tunisia', c: 'TUN', f: '🇹🇳' } },
+    { id: 13, date: 'Mon 15 June 2026', time: '20:00', stage: 'Group H', stadium: 'Atlanta', home: { n: 'Spain', c: 'ESP', f: '🇪🇸' }, away: { n: 'Cabo Verde', c: 'CPV', f: '🇨🇻' } },
+    { id: 14, date: 'Mon 15 June 2026', time: '23:00', stage: 'Group G', stadium: 'Seattle', home: { n: 'Belgium', c: 'BEL', f: '🇧🇪' }, away: { n: 'Egypt', c: 'EGY', f: '🇪🇬' } },
+    { id: 15, date: 'Tue 16 June 2026', time: '02:00', stage: 'Group H', stadium: 'Miami', home: { n: 'Saudi Arabia', c: 'KSA', f: '🇸🇦' }, away: { n: 'Uruguay', c: 'URU', f: '🇺🇾' } },
+    { id: 16, date: 'Tue 16 June 2026', time: '05:00', stage: 'Group G', stadium: 'Los Angeles', home: { n: 'IR Iran', c: 'IRN', f: '🇮🇷' }, away: { n: 'New Zealand', c: 'NZL', f: '🇳🇿' } },
+    { id: 17, date: 'Tue 16 June 2026', time: '23:00', stage: 'Group I', stadium: 'New York/NJ', home: { n: 'France', c: 'FRA', f: '🇫🇷' }, away: { n: 'Senegal', c: 'SEN', f: '🇸🇳' } },
+    { id: 18, date: 'Wed 17 June 2026', time: '02:00', stage: 'Group I', stadium: 'Boston', home: { n: 'Iraq', c: 'IRQ', f: '🇮🇶' }, away: { n: 'Norway', c: 'NOR', f: '🇳🇴' } },
+    { id: 19, date: 'Wed 17 June 2026', time: '05:00', stage: 'Group J', stadium: 'Kansas City', home: { n: 'Argentina', c: 'ARG', f: '🇦🇷' }, away: { n: 'Algeria', c: 'ALG', f: '🇩🇿' } },
+    { id: 20, date: 'Wed 17 June 2026', time: '08:00', stage: 'Group J', stadium: 'San Francisco', home: { n: 'Austria', c: 'AUT', f: '🇦🇹' }, away: { n: 'Jordan', c: 'JOR', f: '🇯🇴' } },
+    { id: 21, date: 'Wed 17 June 2026', time: '21:00', stage: 'Group K', stadium: 'Houston', home: { n: 'Portugal', c: 'POR', f: '🇵🇹' }, away: { n: 'Congo DR', c: 'COD', f: '🇨🇩' } },
+    { id: 22, date: 'Thu 18 June 2026', time: '00:00', stage: 'Group L', stadium: 'Dallas', home: { n: 'England', c: 'ENG', f: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { n: 'Croatia', c: 'CRO', f: '🇭🇷' } },
+    { id: 23, date: 'Thu 18 June 2026', time: '03:00', stage: 'Group L', stadium: 'Toronto', home: { n: 'Ghana', c: 'GHA', f: '🇬🇭' }, away: { n: 'Panama', c: 'PAN', f: '🇵🇦' } },
+    { id: 24, date: 'Thu 18 June 2026', time: '06:00', stage: 'Group K', stadium: 'Mexico City', home: { n: 'Uzbekistan', c: 'UZB', f: '🇺🇿' }, away: { n: 'Colombia', c: 'COL', f: '🇨🇴' } },
+    { id: 25, date: 'Thu 18 June 2026', time: '20:00', stage: 'Group A', stadium: 'Atlanta', home: { n: 'Czechia', c: 'CZE', f: '🇨🇿' }, away: { n: 'South Africa', c: 'RSA', f: '🇿🇦' } },
+    { id: 26, date: 'Thu 18 June 2026', time: '23:00', stage: 'Group B', stadium: 'Los Angeles', home: { n: 'Switzerland', c: 'SUI', f: '🇨🇭' }, away: { n: 'Bosnia', c: 'BIH', f: '🇧🇦' } },
+
+    // --- HAZİRAN 19-28 ---
+    { id: 27, date: 'Fri 19 June 2026', time: '02:00', stage: 'Group B', stadium: 'Vancouver', home: { n: 'Canada', c: 'CAN', f: '🇨🇦' }, away: { n: 'Qatar', c: 'QAT', f: '🇶🇦' } },
+    { id: 28, date: 'Fri 19 June 2026', time: '05:00', stage: 'Group A', stadium: 'Guadalajara', home: { n: 'Mexico', c: 'MEX', f: '🇲🇽' }, away: { n: 'Korea Rep.', c: 'KOR', f: '🇰🇷' } },
+    { id: 29, date: 'Fri 19 June 2026', time: '23:00', stage: 'Group D', stadium: 'Seattle', home: { n: 'USA', c: 'USA', f: '🇺🇸' }, away: { n: 'Australia', c: 'AUS', f: '🇦🇺' } },
+    { id: 30, date: 'Sat 20 June 2026', time: '02:00', stage: 'Group C', stadium: 'Boston', home: { n: 'Scotland', c: 'SCO', f: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' }, away: { n: 'Morocco', c: 'MAR', f: '🇲🇦' } },
+    { id: 31, date: 'Sat 20 June 2026', time: '04:30', stage: 'Group C', stadium: 'Philadelphia', home: { n: 'Brazil', c: 'BRA', f: '🇧🇷' }, away: { n: 'Haiti', c: 'HAI', f: '🇭🇹' } },
+    { id: 32, date: 'Sat 20 June 2026', time: '07:00', stage: 'Group D', stadium: 'San Francisco', home: { n: 'Türkiye', c: 'TUR', f: '🇹🇷' }, away: { n: 'Paraguay', c: 'PAR', f: '🇵🇾' } },
+    { id: 33, date: 'Sat 20 June 2026', time: '21:00', stage: 'Group F', stadium: 'Houston', home: { n: 'Netherlands', c: 'NED', f: '🇳🇱' }, away: { n: 'Sweden', c: 'SWE', f: '🇸🇪' } },
+    { id: 34, date: 'Sun 21 June 2026', time: '00:00', stage: 'Group E', stadium: 'Toronto', home: { n: 'Germany', c: 'GER', f: '🇩🇪' }, away: { n: 'Côte d’Ivoire', c: 'CIV', f: '🇨🇮' } },
+    { id: 35, date: 'Sun 21 June 2026', time: '04:00', stage: 'Group E', stadium: 'Kansas City', home: { n: 'Ecuador', c: 'ECU', f: '🇪🇨' }, away: { n: 'Curaçao', c: 'CUW', f: '🇨🇼' } },
+    { id: 36, date: 'Sun 21 June 2026', time: '08:00', stage: 'Group F', stadium: 'Monterrey', home: { n: 'Tunisia', c: 'TUN', f: '🇹🇳' }, away: { n: 'Japan', c: 'JPN', f: '🇯🇵' } },
+    { id: 37, date: 'Sun 21 June 2026', time: '20:00', stage: 'Group H', stadium: 'Atlanta', home: { n: 'Spain', c: 'ESP', f: '🇪🇸' }, away: { n: 'Saudi Arabia', c: 'KSA', f: '🇸🇦' } },
+    { id: 38, date: 'Sun 21 June 2026', time: '23:00', stage: 'Group G', stadium: 'Los Angeles', home: { n: 'Belgium', c: 'BEL', f: '🇧🇪' }, away: { n: 'IR Iran', c: 'IRN', f: '🇮🇷' } },
+    { id: 39, date: 'Mon 22 June 2026', time: '02:00', stage: 'Group H', stadium: 'Miami', home: { n: 'Uruguay', c: 'URU', f: '🇺🇾' }, away: { n: 'Cabo Verde', c: 'CPV', f: '🇨🇻' } },
+    { id: 40, date: 'Mon 22 June 2026', time: '05:00', stage: 'Group G', stadium: 'Vancouver', home: { n: 'New Zealand', c: 'NZL', f: '🇳🇿' }, away: { n: 'Egypt', c: 'EGY', f: '🇪🇬' } },
+    { id: 41, date: 'Mon 22 June 2026', time: '21:00', stage: 'Group J', stadium: 'Dallas', home: { n: 'Argentina', c: 'ARG', f: '🇦🇷' }, away: { n: 'Austria', c: 'AUT', f: '🇦🇹' } },
+    { id: 42, date: 'Tue 23 June 2026', time: '01:00', stage: 'Group I', stadium: 'Philadelphia', home: { n: 'France', c: 'FRA', f: '🇫🇷' }, away: { n: 'Iraq', c: 'IRQ', f: '🇮🇶' } },
+    { id: 43, date: 'Tue 23 June 2026', time: '04:00', stage: 'Group I', stadium: 'New York/NJ', home: { n: 'Norway', c: 'NOR', f: '🇳🇴' }, away: { n: 'Senegal', c: 'SEN', f: '🇸🇳' } },
+    { id: 44, date: 'Tue 23 June 2026', time: '07:00', stage: 'Group J', stadium: 'San Francisco', home: { n: 'Jordan', c: 'JOR', f: '🇯🇴' }, away: { n: 'Algeria', c: 'ALG', f: '🇩🇿' } },
+    { id: 45, date: 'Tue 23 June 2026', time: '21:00', stage: 'Group K', stadium: 'Houston', home: { n: 'Portugal', c: 'POR', f: '🇵🇹' }, away: { n: 'Uzbekistan', c: 'UZB', f: '🇺🇿' } },
+    { id: 46, date: 'Wed 24 June 2026', time: '00:00', stage: 'Group L', stadium: 'Boston', home: { n: 'England', c: 'ENG', f: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { n: 'Ghana', c: 'GHA', f: '🇬🇭' } },
+    { id: 47, date: 'Wed 24 June 2026', time: '03:00', stage: 'Group L', stadium: 'Toronto', home: { n: 'Panama', c: 'PAN', f: '🇵🇦' }, away: { n: 'Croatia', c: 'CRO', f: '🇭🇷' } },
+    { id: 48, date: 'Wed 24 June 2026', time: '06:00', stage: 'Group K', stadium: 'Guadalajara', home: { n: 'Colombia', c: 'COL', f: '🇨🇴' }, away: { n: 'Congo DR', c: 'COD', f: '🇨🇩' } },
+    { id: 49, date: 'Wed 24 June 2026', time: '23:00', stage: 'Group B', stadium: 'Vancouver', home: { n: 'Switzerland', c: 'SUI', f: '🇨🇭' }, away: { n: 'Canada', c: 'CAN', f: '🇨🇦' } },
+    { id: 50, date: 'Wed 24 June 2026', time: '23:00', stage: 'Group B', stadium: 'Seattle', home: { n: 'Bosnia', c: 'BIH', f: '🇧🇦' }, away: { n: 'Qatar', c: 'QAT', f: '🇶🇦' } },
+    { id: 51, date: 'Thu 25 June 2026', time: '02:00', stage: 'Group C', stadium: 'Miami', home: { n: 'Scotland', c: 'SCO', f: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' }, away: { n: 'Brazil', c: 'BRA', f: '🇧🇷' } },
+    { id: 52, date: 'Thu 25 June 2026', time: '02:00', stage: 'Group C', stadium: 'Atlanta', home: { n: 'Morocco', c: 'MAR', f: '🇲🇦' }, away: { n: 'Haiti', c: 'HAI', f: '🇭🇹' } },
+    { id: 53, date: 'Thu 25 June 2026', time: '05:00', stage: 'Group A', stadium: 'Mexico City', home: { n: 'Czechia', c: 'CZE', f: '🇨🇿' }, away: { n: 'Mexico', c: 'MEX', f: '🇲🇽' } },
+    { id: 54, date: 'Thu 25 June 2026', time: '05:00', stage: 'Group A', stadium: 'Monterrey', home: { n: 'South Africa', c: 'RSA', f: '🇿🇦' }, away: { n: 'Korea Rep.', c: 'KOR', f: '🇰🇷' } },
+    { id: 55, date: 'Fri 26 June 2026', time: '00:00', stage: 'Group E', stadium: 'Philadelphia', home: { n: 'Curaçao', c: 'CUW', f: '🇨🇼' }, away: { n: 'Côte d’Ivoire', c: 'CIV', f: '🇨🇮' } },
+    { id: 56, date: 'Fri 26 June 2026', time: '00:00', stage: 'Group E', stadium: 'New York/NJ', home: { n: 'Ecuador', c: 'ECU', f: '🇪🇨' }, away: { n: 'Germany', c: 'GER', f: '🇩🇪' } },
+    { id: 57, date: 'Fri 26 June 2026', time: '03:00', stage: 'Group F', stadium: 'Dallas', home: { n: 'Japan', c: 'JPN', f: '🇯🇵' }, away: { n: 'Sweden', c: 'SWE', f: '🇸🇪' } },
+    { id: 58, date: 'Fri 26 June 2026', time: '03:00', stage: 'Group F', stadium: 'Kansas City', home: { n: 'Tunisia', c: 'TUN', f: '🇹🇳' }, away: { n: 'Netherlands', c: 'NED', f: '🇳🇱' } },
+    { id: 59, date: 'Fri 26 June 2026', time: '06:00', stage: 'Group D', stadium: 'Los Angeles', home: { n: 'Türkiye', c: 'TUR', f: '🇹🇷' }, away: { n: 'USA', c: 'USA', f: '🇺🇸' } },
+    { id: 60, date: 'Fri 26 June 2026', time: '06:00', stage: 'Group D', stadium: 'San Francisco', home: { n: 'Paraguay', c: 'PAR', f: '🇵🇾' }, away: { n: 'Australia', c: 'AUS', f: '🇦🇺' } },
+    { id: 61, date: 'Fri 26 June 2026', time: '23:00', stage: 'Group I', stadium: 'Boston', home: { n: 'Norway', c: 'NOR', f: '🇳🇴' }, away: { n: 'France', c: 'FRA', f: '🇫🇷' } },
+    { id: 62, date: 'Fri 26 June 2026', time: '23:00', stage: 'Group I', stadium: 'Toronto', home: { n: 'Senegal', c: 'SEN', f: '🇸🇳' }, away: { n: 'Iraq', c: 'IRQ', f: '🇮🇶' } },
+    { id: 63, date: 'Sat 27 June 2026', time: '04:00', stage: 'Group H', stadium: 'Houston', home: { n: 'Cabo Verde', c: 'CPV', f: '🇨🇻' }, away: { n: 'Saudi Arabia', c: 'KSA', f: '🇸🇦' } },
+    { id: 64, date: 'Sat 27 June 2026', time: '04:00', stage: 'Group H', stadium: 'Guadalajara', home: { n: 'Uruguay', c: 'URU', f: '🇺🇾' }, away: { n: 'Spain', c: 'ESP', f: '🇪🇸' } },
+    { id: 65, date: 'Sat 27 June 2026', time: '07:00', stage: 'Group G', stadium: 'Seattle', home: { n: 'Egypt', c: 'EGY', f: '🇪🇬' }, away: { n: 'IR Iran', c: 'IRN', f: '🇮🇷' } },
+    { id: 66, date: 'Sat 27 June 2026', time: '07:00', stage: 'Group G', stadium: 'Vancouver', home: { n: 'New Zealand', c: 'NZL', f: '🇳🇿' }, away: { n: 'Belgium', c: 'BEL', f: '🇧🇪' } },
+    { id: 67, date: 'Sun 28 June 2026', time: '01:00', stage: 'Group L', stadium: 'New York/NJ', home: { n: 'Panama', c: 'PAN', f: '🇵🇦' }, away: { n: 'England', c: 'ENG', f: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' } },
+    { id: 68, date: 'Sun 28 June 2026', time: '01:00', stage: 'Group L', stadium: 'Philadelphia', home: { n: 'Croatia', c: 'CRO', f: '🇭🇷' }, away: { n: 'Ghana', c: 'GHA', f: '🇬🇭' } },
+    { id: 69, date: 'Sun 28 June 2026', time: '03:30', stage: 'Group K', stadium: 'Miami', home: { n: 'Colombia', c: 'COL', f: '🇨🇴' }, away: { n: 'Portugal', c: 'POR', f: '🇵🇹' } },
+    { id: 70, date: 'Sun 28 June 2026', time: '03:30', stage: 'Group K', stadium: 'Atlanta', home: { n: 'Congo DR', c: 'COD', f: '🇨🇩' }, away: { n: 'Uzbekistan', c: 'UZB', f: '🇺🇿' } },
+    { id: 71, date: 'Sun 28 June 2026', time: '06:00', stage: 'Group J', stadium: 'Kansas City', home: { n: 'Algeria', c: 'ALG', f: '🇩🇿' }, away: { n: 'Austria', c: 'AUT', f: '🇦🇹' } },
+    { id: 72, date: 'Sun 28 June 2026', time: '06:00', stage: 'Group J', stadium: 'Dallas', home: { n: 'Jordan', c: 'JOR', f: '🇯🇴' }, away: { n: 'Argentina', c: 'ARG', f: '🇦🇷' } },
+
+    // --- ROUND OF 32 ---
+    { id: 73, date: 'Sun 28 June 2026', time: '23:00', stage: 'Round of 32', stadium: 'Los Angeles', home: { n: '2A', c: '2A', f: '🏳️' }, away: { n: '2B', c: '2B', f: '🏳️' } },
+    { id: 74, date: 'Mon 29 June 2026', time: '21:00', stage: 'Round of 32', stadium: 'Houston', home: { n: '1C', c: '1C', f: '🏳️' }, away: { n: '2F', c: '2F', f: '🏳️' } },
+    { id: 75, date: 'Tue 30 June 2026', time: '00:30', stage: 'Round of 32', stadium: 'Boston', home: { n: '1E', c: '1E', f: '🏳️' }, away: { n: '3ABCDF', c: '3RD', f: '🏳️' } },
+    { id: 76, date: 'Tue 30 June 2026', time: '05:00', stage: 'Round of 32', stadium: 'Monterrey', home: { n: '1F', c: '1F', f: '🏳️' }, away: { n: '2C', c: '2C', f: '🏳️' } },
+    { id: 77, date: 'Tue 30 June 2026', time: '21:00', stage: 'Round of 32', stadium: 'Dallas', home: { n: '2E', c: '2E', f: '🏳️' }, away: { n: '2I', c: '2I', f: '🏳️' } },
+    { id: 78, date: 'Wed 01 July 2026', time: '01:00', stage: 'Round of 32', stadium: 'New York/NJ', home: { n: '1I', c: '1I', f: '🏳️' }, away: { n: '3CDFGH', c: '3RD', f: '🏳️' } },
+    { id: 79, date: 'Wed 01 July 2026', time: '05:00', stage: 'Round of 32', stadium: 'Mexico City', home: { n: '1A', c: '1A', f: '🏳️' }, away: { n: '3CEFHI', c: '3RD', f: '🏳️' } },
+    { id: 80, date: 'Wed 01 July 2026', time: '20:00', stage: 'Round of 32', stadium: 'Atlanta', home: { n: '1L', c: '1L', f: '🏳️' }, away: { n: '3EHIJK', c: '3RD', f: '🏳️' } },
+    { id: 81, date: 'Thu 02 July 2026', time: '00:00', stage: 'Round of 32', stadium: 'Seattle', home: { n: '1G', c: '1G', f: '🏳️' }, away: { n: '3AEHIJ', c: '3RD', f: '🏳️' } },
+    { id: 82, date: 'Thu 02 July 2026', time: '04:00', stage: 'Round of 32', stadium: 'San Francisco', home: { n: '1D', c: '1D', f: '🏳️' }, away: { n: '3BEFIJ', c: '3RD', f: '🏳️' } },
+    { id: 83, date: 'Thu 02 July 2026', time: '23:00', stage: 'Round of 32', stadium: 'Los Angeles', home: { n: '1H', c: '1H', f: '🏳️' }, away: { n: '2J', c: '2J', f: '🏳️' } },
+    { id: 84, date: 'Fri 03 July 2026', time: '03:00', stage: 'Round of 32', stadium: 'Toronto', home: { n: '2K', c: '2K', f: '🏳️' }, away: { n: '2L', c: '2L', f: '🏳️' } },
+    { id: 85, date: 'Fri 03 July 2026', time: '07:00', stage: 'Round of 32', stadium: 'Vancouver', home: { n: '1B', c: '1B', f: '🏳️' }, away: { n: '3EFGIJ', c: '3RD', f: '🏳️' } },
+    { id: 86, date: 'Fri 03 July 2026', time: '22:00', stage: 'Round of 32', stadium: 'Dallas', home: { n: '2D', c: '2D', f: '🏳️' }, away: { n: '2G', c: '2G', f: '🏳️' } },
+    { id: 87, date: 'Sat 04 July 2026', time: '02:00', stage: 'Round of 32', stadium: 'Miami', home: { n: '1J', c: '1J', f: '🏳️' }, away: { n: '2H', c: '2H', f: '🏳️' } },
+    { id: 88, date: 'Sat 04 July 2026', time: '05:30', stage: 'Round of 32', stadium: 'Kansas City', home: { n: '1K', c: '1K', f: '🏳️' }, away: { n: '3DEIJL', c: '3RD', f: '🏳️' } },
+
+    // --- ROUND OF 16 ---
+    { id: 89, date: 'Sat 04 July 2026', time: '21:00', stage: 'Round of 16', stadium: 'Houston', home: { n: 'W73', c: 'W73', f: '?' }, away: { n: 'W75', c: 'W75', f: '?' } },
+    { id: 90, date: 'Sun 05 July 2026', time: '01:00', stage: 'Round of 16', stadium: 'Philadelphia', home: { n: 'W74', c: 'W74', f: '?' }, away: { n: 'W77', c: 'W77', f: '?' } },
+    { id: 91, date: 'Mon 06 July 2026', time: '00:00', stage: 'Round of 16', stadium: 'New York/NJ', home: { n: 'W76', c: 'W76', f: '?' }, away: { n: 'W78', c: 'W78', f: '?' } },
+    { id: 92, date: 'Mon 06 July 2026', time: '04:00', stage: 'Round of 16', stadium: 'Mexico City', home: { n: 'W79', c: 'W79', f: '?' }, away: { n: 'W80', c: 'W80', f: '?' } },
+    { id: 93, date: 'Mon 06 July 2026', time: '23:00', stage: 'Round of 16', stadium: 'Dallas', home: { n: 'W83', c: 'W83', f: '?' }, away: { n: 'W84', c: 'W84', f: '?' } },
+    { id: 94, date: 'Tue 07 July 2026', time: '04:00', stage: 'Round of 16', stadium: 'Seattle', home: { n: 'W81', c: 'W81', f: '?' }, away: { n: 'W82', c: 'W82', f: '?' } },
+    { id: 95, date: 'Tue 07 July 2026', time: '20:00', stage: 'Round of 16', stadium: 'Atlanta', home: { n: 'W86', c: 'W86', f: '?' }, away: { n: 'W88', c: 'W88', f: '?' } },
+    { id: 96, date: 'Wed 08 July 2026', time: '00:00', stage: 'Round of 16', stadium: 'Vancouver', home: { n: 'W85', c: 'W85', f: '?' }, away: { n: 'W87', c: 'W87', f: '?' } },
+
+    // --- QUARTER FINALS ---
+    { id: 97, date: 'Fri 10 July 2026', time: '00:00', stage: 'Quarter-final', stadium: 'Boston', home: { n: 'W89', c: 'W89', f: '?' }, away: { n: 'W90', c: 'W90', f: '?' } },
+    { id: 98, date: 'Fri 10 July 2026', time: '23:00', stage: 'Quarter-final', stadium: 'Los Angeles', home: { n: 'W93', c: 'W93', f: '?' }, away: { n: 'W94', c: 'W94', f: '?' } },
+    { id: 99, date: 'Sun 12 July 2026', time: '01:00', stage: 'Quarter-final', stadium: 'Miami', home: { n: 'W91', c: 'W91', f: '?' }, away: { n: 'W92', c: 'W92', f: '?' } },
+    { id: 100, date: 'Sun 12 July 2026', time: '05:00', stage: 'Quarter-final', stadium: 'Kansas City', home: { n: 'W95', c: 'W95', f: '?' }, away: { n: 'W96', c: 'W96', f: '?' } },
+
+    // --- SEMI FINALS ---
+    { id: 101, date: 'Tue 14 July 2026', time: '23:00', stage: 'Semi-final', stadium: 'Dallas', home: { n: 'W97', c: 'W97', f: '?' }, away: { n: 'W98', c: 'W98', f: '?' } },
+    { id: 102, date: 'Wed 15 July 2026', time: '23:00', stage: 'Semi-final', stadium: 'Atlanta', home: { n: 'W99', c: 'W99', f: '?' }, away: { n: 'W100', c: 'W100', f: '?' } },
+
+    // --- FINALS ---
+    { id: 103, date: 'Sun 18 July 2026', time: '01:00', stage: 'Third Place', stadium: 'Miami', home: { n: 'RU101', c: 'RU1', f: '🥉' }, away: { n: 'RU102', c: 'RU2', f: '🥉' } },
+    { id: 104, date: 'Sun 19 July 2026', time: '23:00', stage: 'FINAL', stadium: 'New York/NJ', home: { n: 'W101', c: 'W101', f: '🏆' }, away: { n: 'W102', c: 'W102', f: '🏆' } }
 ];
 
 export default function PredictBase() {
-    const [matches, setMatches] = useState(INITIAL_MATCHES);
-    const [myPicks, setMyPicks] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState('matches');
-    const [search, setSearch] = useState('');
-    const [modalMatch, setModalMatch] = useState<any>(null);
+  const [matches, setMatches] = useState<Match[]>(INITIAL_MATCHES);
+  const [myPicks, setMyPicks] = useState<Prediction[]>([]);
+  const [activeTab, setActiveTab] = useState<'matches' | 'picks'>('matches');
+  const [search, setSearch] = useState('');
+  const [modalMatch, setModalMatch] = useState<Match | null>(null);
 
-    // --- OTOMATİK SKOR SORGULAMA ---
-    useEffect(() => {
-        const fetchResults = async () => {
-            const now = Date.now();
-            const hundredFiveMins = 105 * 60 * 1000;
+  // --- API SORGULAMA (105. dakikadan sonra her 10 dk'da bir) ---
+  useEffect(() => {
+    const fetchLiveScores = async () => {
+      const now = Date.now();
+      const hundredFiveMins = 105 * 60 * 1000;
 
-            const pendingMatches = matches.filter(m => !m.result && (now - m.timestamp) > hundredFiveMins);
+      const matchesToUpdate = matches.filter(m => !m.result && (now - m.timestamp) > hundredFiveMins);
 
-            for (const m of pendingMatches) {
-                try {
-                    const res = await fetch(`/api/matches?matchId=${m.externalId}`);
-                    const data = await res.json();
+      for (const m of matchesToUpdate) {
+        try {
+          const res = await fetch(`/api/matches?matchId=${m.externalId}`);
+          const data = await res.json();
 
-                    if (data.score) {
-                        updateMatchAndPicks(m.id, data.score, data.events);
-                    }
-                } catch (e) { console.error("Update failed", m.id); }
-            }
-        };
-
-        const interval = setInterval(fetchResults, 600000); // 10 dakikada bir
-        fetchResults();
-        return () => clearInterval(interval);
-    }, [matches]);
-
-    const updateMatchAndPicks = (matchId: number, score: string, events: any[]) => {
-        setMatches(prev => prev.map(m => m.id === matchId ? { ...m, result: score, events } : m));
-        setMyPicks(prev => prev.map(p => {
-            if (p.matchId === matchId && p.status === 'pend') {
-                const isWin = p.pred === score;
-                return { ...p, status: isWin ? 'win' : 'lost', payout: isWin ? p.tickets * 15 : 0 };
-            }
-            return p;
-        }));
+          if (data.score) {
+            setMatches(prev => prev.map(match => match.id === m.id ? { ...match, result: data.score, events: data.events } : match));
+            // Tahminleri güncelle (WIN/LOSS)
+            setMyPicks(prev => prev.map(pick => {
+              if (pick.matchId === m.id && pick.status === 'pend') {
+                const isWin = pick.pred === data.score;
+                return { ...pick, status: isWin ? 'win' : 'lost', payout: isWin ? 30 : 0 };
+              }
+              return pick;
+            }));
+          }
+        } catch (e) { console.error("Score update error", e); }
+      }
     };
 
-    // --- DASHBOARD HESAPLAMA ---
-    const stats = {
-        wins: myPicks.filter(p => p.status === 'win').length,
-        lost: myPicks.filter(p => p.status === 'lost').length,
-        pend: myPicks.filter(p => p.status === 'pend').length,
-        earned: myPicks.reduce((s, p) => s + (p.payout || 0), 0)
-    };
+    const interval = setInterval(fetchLiveScores, 600000); // 10 dakika
+    fetchLiveScores();
+    return () => clearInterval(interval);
+  }, [matches]);
 
-    return (
-        <div className="min-h-screen bg-[#05070a] text-white pb-20">
-            {/* HEADER */}
-            <div className="sticky top-0 z-50 bg-[#05070a]/95 border-b border-white/5 backdrop-blur-md px-4 py-3">
-                <div className="flex justify-between items-center mb-3">
-                    <div className="font-display text-lg font-black text-[#00e87a] uppercase italic">⚽ PREDICTBASE 2026</div>
-                    <div className="text-[9px] font-bold border border-[#00e87a]/20 px-3 py-1 rounded-lg text-[#00e87a] uppercase">Connect</div>
-                </div>
-                <div className="flex gap-4">
-                    <button onClick={() => setActiveTab('matches')} className={`text-[10px] font-bold uppercase pb-1 border-b-2 transition-all ${activeTab === 'matches' ? 'border-[#00e87a] text-[#00e87a]' : 'border-transparent text-gray-500'}`}>Matches</button>
-                    <button onClick={() => setActiveTab('picks')} className={`text-[10px] font-bold uppercase pb-1 border-b-2 transition-all ${activeTab === 'picks' ? 'border-[#00e87a] text-[#00e87a]' : 'border-transparent text-gray-500'}`}>My Picks</button>
-                </div>
-            </div>
+  // Dashboard Stats
+  const stats = {
+    wins: myPicks.filter(p => p.status === 'win').length,
+    lost: myPicks.filter(p => p.status === 'lost').length,
+    pend: myPicks.filter(p => p.status === 'pend').length,
+    earned: myPicks.reduce((sum, p) => sum + p.payout, 0)
+  };
 
-            <div className="p-4 max-w-xl mx-auto">
-                {activeTab === 'matches' ? (
-                    <>
-                        <input onChange={(e) => setSearch(e.target.value)} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs mb-4 outline-none focus:border-[#00e87a]" placeholder="Search teams..." />
-                        <div className="grid gap-4">
-                            {matches.filter(m => m.home.n.toLowerCase().includes(search.toLowerCase()) || m.away.n.toLowerCase().includes(search.toLowerCase())).map(m => (
-                                <div key={m.id} className="bg-gradient-to-br from-white/10 to-transparent border border-white/5 rounded-[24px] p-5">
-                                    <div className="flex justify-between text-[8px] font-bold text-gray-500 uppercase mb-4 tracking-widest">
-                                        <span>{m.stage} • 90 MIN ONLY</span>
-                                        <span className={m.result ? 'text-gray-600' : 'text-[#00e87a]'}>{m.date}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex flex-col items-center w-1/3">
-                                            <span className="text-3xl mb-1">{m.home.f}</span>
-                                            <span className="text-[10px] font-black uppercase text-center">{m.home.n}</span>
-                                        </div>
-                                        {m.result ? (
-                                            <div className="text-center">
-                                                <div className="text-3xl font-black text-[#00e87a] font-mono tracking-tighter">{m.result}</div>
-                                                <div className="text-[7px] text-gray-600 font-bold uppercase">Final Score</div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-xl font-black text-gray-800 italic">VS</div>
-                                        )}
-                                        <div className="flex flex-col items-center w-1/3">
-                                            <span className="text-3xl mb-1">{m.away.f}</span>
-                                            <span className="text-[10px] font-black uppercase text-center">{m.away.n}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* GOAL DETAILS */}
-                                    {m.result && m.events.length > 0 && (
-                                        <div className="bg-black/40 rounded-xl p-2 mb-3 border border-white/5">
-                                            {m.events.map((e:any, i:number) => (
-                                                <div key={i} className="flex justify-between text-[8px] font-bold py-0.5 px-1">
-                                                    <span className="text-gray-400">⚽ {e.player}</span>
-                                                    <span className="text-[#00e87a]">{e.minute}'</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <div className="flex justify-between items-center border-t border-white/5 pt-3">
-                                        <span className="text-[8px] font-bold text-gray-600 uppercase">Pool: {m.result ? 'Closed' : '0 USDC'}</span>
-                                        {!m.result && (
-                                            <button onClick={() => setModalMatch(m)} className="bg-gradient-to-r from-[#00e87a] to-[#00b85e] text-[#03100a] px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider">Predict</button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                ) : (
-                    /* DASHBOARD VIEW */
-                    <div className="grid gap-4">
-                        <div className="grid grid-cols-4 gap-2">
-                            <div className="bg-white/5 rounded-2xl p-3 text-center"><div className="text-[#00e87a] font-black">{stats.wins}</div><div className="text-[7px] text-gray-500 uppercase font-bold">Wins</div></div>
-                            <div className="bg-white/5 rounded-2xl p-3 text-center"><div className="text-red-500 font-black">{stats.lost}</div><div className="text-[7px] text-gray-500 uppercase font-bold">Lost</div></div>
-                            <div className="bg-white/5 rounded-2xl p-3 text-center"><div className="text-yellow-500 font-black">{stats.pend}</div><div className="text-[7px] text-gray-500 uppercase font-bold">Pend</div></div>
-                            <div className="bg-white/5 rounded-2xl p-3 text-center"><div className="text-white font-black">${stats.earned}</div><div className="text-[7px] text-gray-500 uppercase font-bold">Earned</div></div>
-                        </div>
-                        {myPicks.length === 0 ? (
-                            <div className="text-center py-20 text-gray-600 font-bold text-xs">No predictions made yet.</div>
-                        ) : (
-                            myPicks.map((p, i) => {
-                                const m = matches.find(match => match.id === p.matchId);
-                                return (
-                                    <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex justify-between items-center">
-                                        <div>
-                                            <div className="text-[10px] font-black uppercase">{m?.home.n} vs {m?.away.n}</div>
-                                            <div className="text-[9px] text-gray-500 font-bold uppercase">Pred: <span className="text-white">{p.pred}</span> • {p.tickets} Tix</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase mb-1 ${p.status === 'win' ? 'bg-[#00e87a]/20 text-[#00e87a]' : p.status === 'lost' ? 'bg-red-500/20 text-red-500' : 'bg-yellow-500/20 text-yellow-500'}`}>{p.status}</div>
-                                            {p.status === 'win' && <div className="text-[#00e87a] font-black text-xs">+${p.payout}</div>}
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* PREDICTION MODAL */}
-            {modalMatch && (
-                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-lg flex items-end justify-center">
-                    <div className="w-full max-w-xl bg-[#0c1016] rounded-t-[32px] p-8 animate-in slide-in-from-bottom duration-300">
-                        <div className="flex justify-between mb-8">
-                            <h2 className="text-lg font-black uppercase">{modalMatch.home.c} VS {modalMatch.away.c}</h2>
-                            <button onClick={() => setModalMatch(null)} className="text-gray-500">✕</button>
-                        </div>
-                        <div className="flex justify-center gap-8 mb-8">
-                            <div className="flex flex-col items-center">
-                                <div className="text-3xl mb-3">{modalMatch.home.f}</div>
-                                <input id="sh" type="number" defaultValue="0" className="w-16 h-16 bg-white/10 border-2 border-white/10 rounded-2xl text-center text-2xl font-black focus:border-[#00e87a] outline-none" />
-                                <span className="text-[8px] text-[#00e87a] font-bold uppercase mt-2">Type Score</span>
-                            </div>
-                            <div className="text-3xl font-black text-gray-800 mt-4">—</div>
-                            <div className="flex flex-col items-center">
-                                <div className="text-3xl mb-3">{modalMatch.away.f}</div>
-                                <input id="sa" type="number" defaultValue="0" className="w-16 h-16 bg-white/10 border-2 border-white/10 rounded-2xl text-center text-2xl font-black focus:border-[#00e87a] outline-none" />
-                                <span className="text-[8px] text-[#00e87a] font-bold uppercase mt-2">Type Score</span>
-                            </div>
-                        </div>
-                        <button onClick={() => {
-                            const h = (document.getElementById('sh') as HTMLInputElement).value;
-                            const a = (document.getElementById('sa') as HTMLInputElement).value;
-                            setMyPicks([{ matchId: modalMatch.id, pred: `${h}-${a}`, tickets: 1, status: 'pend', payout: 0 }, ...myPicks]);
-                            setModalMatch(null);
-                        }} className="w-full bg-[#00e87a] text-[#03100a] py-4 rounded-2xl font-black uppercase text-sm tracking-widest">Deploy Prediction</button>
-                    </div>
-                </div>
-            )}
+  return (
+    <div className="min-h-screen bg-[#05070a] text-white font-sans pb-20">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 bg-[#05070a]/95 backdrop-blur-md border-b border-white/5 px-4 py-3">
+        <div className="flex justify-between items-center mb-4">
+          <div className="font-display text-xl font-black text-[#00e87a] tracking-tighter uppercase italic">⚽ PREDICTBASE 2026</div>
+          <div className="text-[9px] font-bold border border-[#00e87a]/30 px-3 py-1.5 rounded-xl text-[#00e87a] uppercase">Connect</div>
         </div>
-    );
+        <div className="flex gap-6 border-b border-white/5">
+          <button onClick={() => setActiveTab('matches')} className={`text-[10px] font-bold uppercase pb-2 transition-all ${activeTab === 'matches' ? 'border-[#00e87a] text-[#00e87a]' : 'border-transparent text-gray-500'}`}>Matches</button>
+          <button onClick={() => setActiveTab('picks')} className={`text-[10px] font-bold uppercase pb-2 transition-all ${activeTab === 'picks' ? 'border-[#00e87a] text-[#00e87a]' : 'border-transparent text-gray-500'}`}>My Picks</button>
+        </div>
+      </header>
+
+      <div className="max-w-xl mx-auto p-4">
+        {activeTab === 'matches' ? (
+          <>
+            <input 
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-xs mb-6 outline-none focus:border-[#00e87a] transition-all" 
+              placeholder="Search team or group..." 
+            />
+            
+            <div className="flex flex-col gap-5">
+              {matches
+                .filter(m => m.home.n.toLowerCase().includes(search.toLowerCase()) || m.away.n.toLowerCase().includes(search.toLowerCase()))
+                .map(m => (
+                  <div key={m.id} className="bg-gradient-to-br from-white/10 to-transparent border border-white/10 rounded-[28px] p-6 shadow-xl">
+                    <div className="flex justify-between text-[8px] font-bold text-gray-500 uppercase mb-5 tracking-widest">
+                      <span>{m.stage} • 90 MIN ONLY</span>
+                      <span className={m.result ? "text-gray-600" : "text-[#00e87a]"}>{m.date}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between mb-4 px-2">
+                      <div className="flex flex-col items-center w-1/3">
+                        <span className="text-4xl mb-2 drop-shadow-md">{m.home.f}</span>
+                        <span className="text-[11px] font-black uppercase text-center leading-tight">{m.home.n}</span>
+                      </div>
+
+                      <div className="text-center">
+                        {m.result ? (
+                          <div className="flex flex-col items-center">
+                            <span className="text-3xl font-black text-[#00e87a] font-mono tracking-tighter">{m.result}</span>
+                            <span className="text-[7px] text-gray-500 font-bold uppercase mt-1">FT Result</span>
+                          </div>
+                        ) : (
+                          <span className="text-xl font-black text-white/10 italic">VS</span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col items-center w-1/3">
+                        <span className="text-4xl mb-2 drop-shadow-md">{m.away.f}</span>
+                        <span className="text-[11px] font-black uppercase text-center leading-tight">{m.away.n}</span>
+                      </div>
+                    </div>
+
+                    {/* GOL VE DAKİKA DETAYLARI */}
+                    {m.result && m.events.length > 0 && (
+                      <div className="bg-black/40 rounded-2xl p-3 mb-4 border border-white/5 space-y-1.5">
+                        {m.events.map((e, idx) => (
+                          <div key={idx} className="flex justify-between text-[9px] font-bold italic">
+                            <span className="text-gray-400">⚽ {e.player}</span>
+                            <span className="text-[#00e87a]">{e.minute}'</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center border-t border-white/5 pt-4">
+                      <span className="text-[8px] font-bold text-gray-600 uppercase">Pool: {m.result ? "Closed" : "0 USDC"}</span>
+                      {!m.result && (
+                        <button onClick={() => setModalMatch(m)} className="bg-gradient-to-r from-[#00e87a] to-[#00b85e] text-[#03100a] px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">Predict</button>
+                      )}
+                    </div>
+                  </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          /* DASHBOARD (MY PICKS) VIEW */
+          <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-4 gap-2">
+              <div className="bg-white/5 p-3 rounded-2xl text-center"><p className="text-[#00e87a] font-black text-lg">{stats.wins}</p><p className="text-[7px] text-gray-500 uppercase font-bold">Wins</p></div>
+              <div className="bg-white/5 p-3 rounded-2xl text-center"><p className="text-red-500 font-black text-lg">{stats.lost}</p><p className="text-[7px] text-gray-500 uppercase font-bold">Lost</p></div>
+              <div className="bg-white/5 p-3 rounded-2xl text-center"><p className="text-yellow-500 font-black text-lg">{stats.pend}</p><p className="text-[7px] text-gray-500 uppercase font-bold">Pend</p></div>
+              <div className="bg-white/5 p-3 rounded-2xl text-center"><p className="text-white font-black text-lg">${stats.earned}</p><p className="text-[7px] text-gray-500 uppercase font-bold">Earned</p></div>
+            </div>
+
+            <div className="space-y-3">
+              {myPicks.length === 0 ? (
+                <div className="text-center py-20 text-gray-700 font-black uppercase tracking-tighter text-xs">No Predictions Yet</div>
+              ) : (
+                myPicks.map((p, i) => {
+                  const m = matches.find(match => match.id === p.matchId);
+                  return (
+                    <div key={i} className="bg-white/5 border border-white/5 p-5 rounded-[24px] flex justify-between items-center shadow-lg">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-tight">{m?.home.n} vs {m?.away.n}</p>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">My Prediction: <span className="text-white">{p.pred}</span></p>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-[8px] font-black uppercase px-3 py-1 rounded-full mb-1 ${p.status === 'win' ? 'bg-[#00e87a]/20 text-[#00e87a]' : p.status === 'lost' ? 'bg-red-500/20 text-red-500' : 'bg-gray-500/20 text-gray-500'}`}>{p.status}</div>
+                        {p.status === 'win' && <div className="text-[#00e87a] font-black text-xs">+$30.00</div>}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* MODAL */}
+      {modalMatch && (
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-end justify-center p-4">
+          <div className="w-full max-w-lg bg-[#0c1016] border border-white/10 rounded-[40px] p-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <div className="flex justify-between items-center mb-10">
+              <h2 className="font-black text-lg uppercase tracking-tight">{modalMatch.home.c} VS {modalMatch.away.c}</h2>
+              <button onClick={() => setModalMatch(null)} className="text-gray-500 text-2xl">✕</button>
+            </div>
+            <div className="flex justify-center gap-10 mb-10 text-center">
+              <div>
+                <p className="text-5xl mb-4 drop-shadow-lg">{modalMatch.home.f}</p>
+                <input id="sh" type="number" defaultValue="0" className="w-20 h-20 bg-white/10 border-2 border-white/10 rounded-3xl text-center text-3xl font-black focus:border-[#00e87a] outline-none transition-all shadow-inner" />
+                <span className="block text-[8px] text-[#00e87a] font-black uppercase mt-3 tracking-widest">Type Score</span>
+              </div>
+              <div className="text-4xl font-black text-gray-800 mt-10">—</div>
+              <div>
+                <p className="text-5xl mb-4 drop-shadow-lg">{modalMatch.away.f}</p>
+                <input id="sa" type="number" defaultValue="0" className="w-20 h-20 bg-white/10 border-2 border-white/10 rounded-3xl text-center text-3xl font-black focus:border-[#00e87a] outline-none transition-all shadow-inner" />
+                <span className="block text-[8px] text-[#00e87a] font-black uppercase mt-3 tracking-widest">Type Score</span>
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                const h = (document.getElementById('sh') as HTMLInputElement).value;
+                const a = (document.getElementById('sa') as HTMLInputElement).value;
+                setMyPicks([{ matchId: modalMatch.id, pred: `${h}-${a}`, status: 'pend', payout: 0, timestamp: Date.now() }, ...myPicks]);
+                setModalMatch(null);
+              }}
+              className="w-full bg-[#00e87a] text-[#03100a] py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] shadow-[0_0_30px_rgba(0,232,122,0.3)] hover:brightness-110 active:scale-[0.98] transition-all"
+            >
+              Deploy Prediction
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
