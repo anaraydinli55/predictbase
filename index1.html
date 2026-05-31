@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PredictBase — World Cup 2026</title>
+    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://predictbase-base.vercel.app/preview.png","button":{"title":"⚽ Predict & Win USDC","action":{"type":"launch_frame","name":"PredictBase","url":"https://predictbase-base.vercel.app/","splashImageUrl":"https://predictbase-base.vercel.app/icon.png","splashBackgroundColor":"#05070a"}}}' />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --green:  #00e87a;
+            --red:    #ff3355;
+            --bg:     #05070a;
+            --border: rgba(255,255,255,0.07);
+        }
+        body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: white; min-height: 100vh; padding-bottom: 50px; }
+        .font-display { font-family: 'Barlow Condensed', sans-serif; }
+        .card { background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid var(--border); transition: transform 0.2s; }
+        .card:active { transform: scale(0.98); }
+        .neon-g { color: var(--green); text-shadow: 0 0 15px rgba(0,232,122,0.3); }
+        .btn-primary { background: linear-gradient(135deg, #00e87a 0%, #00b85e 100%); color: #03100a; font-weight: 800; cursor: pointer; }
+        .team-orb { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
+        
+        /* SCORE INPUT */
+        .score-box { width: 60px; height: 60px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.15); color: white; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; outline: none; }
+        .score-box:focus { border-color: var(--green); box-shadow: 0 0 12px rgba(0,232,122,0.2); }
+        .type-label { font-size: 8px; color: var(--green); font-weight: 800; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+
+        /* SEARCH BAR */
+        .search-container { position: sticky; top: 56px; z-index: 40; background: var(--bg); padding: 10px 16px; border-bottom: 1px solid var(--border); }
+        .search-bar { background: rgba(255,255,255,0.06); border: 1px solid var(--border); padding: 12px 16px; border-radius: 14px; width: 100%; color: white; font-size: 13px; }
+
+        .modal-bg { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); align-items: flex-end; justify-content: center; }
+        .modal-bg.open { display: flex; }
+        .modal-sheet { width: 100%; max-width: 480px; background: #0c1016; border-radius: 28px 28px 0 0; padding: 24px; animation: rise 0.3s ease-out; }
+        @keyframes rise { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    </style>
+</head>
+<body>
+
+<!-- FIXED HEADER -->
+<div class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-[#05070a]/95 border-b border-white/5 backdrop-blur-md">
+    <div class="font-display text-lg font-black neon-g tracking-tighter uppercase">⚽ WC 2026 PREDICT</div>
+    <div id="wallet-btn" class="border border-green-500/30 bg-green-500/5 px-3 py-1.5 rounded-xl text-[10px] font-bold text-green-400 cursor-pointer">CONNECT WALLET</div>
+</div>
+
+<!-- SEARCH SECTION -->
+<div class="search-container mt-[52px]">
+    <input type="text" id="match-search" class="search-bar" placeholder="Search team (e.g. Mexico, Canada, USA)...">
+</div>
+
+<!-- MATCH LIST -->
+<div class="px-4 py-4">
+    <div id="match-list" class="flex flex-col gap-4 pb-12">
+        <!-- JS Maçları Buraya Dizecek -->
+    </div>
+</div>
+
+<!-- PREDICTION MODAL -->
+<div class="modal-bg" id="predict-modal">
+    <div class="modal-sheet">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="modal-title" class="font-display text-xl font-black tracking-wide uppercase">MATCH</h2>
+            <button id="modal-close" class="text-gray-500 text-xl font-black">✕</button>
+        </div>
+
+        <div class="flex items-center justify-center gap-6 mb-8">
+            <div class="flex flex-col items-center">
+                <div id="m-home-flag" class="team-orb mb-3"></div>
+                <input id="s-home" type="number" class="score-box" value="0">
+                <span class="type-label">Type Score</span>
+                <div id="m-home-code" class="text-[10px] text-gray-400 font-black mt-3 uppercase">MEX</div>
+            </div>
+            
+            <div class="font-display text-4xl font-black text-gray-700 mt-[-30px]">VS</div>
+            
+            <div class="flex flex-col items-center">
+                <div id="m-away-flag" class="team-orb mb-3"></div>
+                <input id="s-away" type="number" class="score-box" value="0">
+                <span class="type-label">Type Score</span>
+                <div id="m-away-code" class="text-[10px] text-gray-400 font-black mt-3 uppercase">RSA</div>
+            </div>
+        </div>
+
+        <div class="card rounded-2xl p-4 mb-6 flex justify-between items-center">
+            <span class="text-[10px] font-bold text-gray-500 uppercase">Ticket Price</span>
+            <span class="font-display text-2xl font-black text-white">2.00 USDC</span>
+        </div>
+
+        <button id="buy-btn" class="btn-primary w-full py-4 rounded-2xl font-display text-sm font-black uppercase tracking-widest">
+            Lock Prediction
+        </button>
+    </div>
+</div>
+
+<script type="module">
+// GÖRSELDEKİ SIRALAMA VE TURNUVA SONUNA KADAR OLAN MAÇLAR
+const WC_2026_MATCHES = [
+    { id: 1, date: 'Thursday 11 June 2026', time: '23:00', stage: 'First Stage · Group A', stadium: 'Mexico City Stadium', home: { n: 'Mexico', c: 'MEX', f: '🇲🇽' }, away: { n: 'South Africa', c: 'RSA', f: '🇿🇦' } },
+    { id: 2, date: 'Friday 12 June 2026', time: '06:00', stage: 'First Stage · Group A', stadium: 'Guadalajara Stadium', home: { n: 'Korea Republic', c: 'KOR', f: '🇰🇷' }, away: { n: 'Czechia', c: 'CZE', f: '🇨🇿' } },
+    { id: 3, date: 'Friday 12 June 2026', time: '23:00', stage: 'First Stage · Group B', stadium: 'Toronto Stadium', home: { n: 'Canada', c: 'CAN', f: '🇨🇦' }, away: { n: 'Bosnia and Herz.', c: 'BIH', f: '🇧🇦' } },
+    { id: 4, date: 'Saturday 13 June 2026', time: '18:00', stage: 'First Stage · Group B', stadium: 'Vancouver Stadium', home: { n: 'USA', c: 'USA', f: '🇺🇸' }, away: { n: 'Morocco', c: 'MAR', f: '🇲🇦' } },
+    { id: 5, date: 'Sunday 14 June 2026', time: '15:00', stage: 'First Stage · Group C', stadium: 'Miami Stadium', home: { n: 'Brazil', c: 'BRA', f: '🇧🇷' }, away: { n: 'Japan', c: 'JPN', f: '🇯🇵' } },
+    { id: 6, date: 'Monday 15 June 2026', time: '21:00', stage: 'First Stage · Group D', stadium: 'New York Stadium', home: { n: 'England', c: 'ENG', f: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { n: 'Turkey', c: 'TUR', f: '🇹🇷' } },
+    { id: 7, date: 'Tuesday 16 June 2026', time: '19:00', stage: 'First Stage · Group E', stadium: 'Los Angeles Stadium', home: { n: 'France', c: 'FRA', f: '🇫🇷' }, away: { n: 'Argentina', c: 'ARG', f: '🇦🇷' } },
+    // --- Eleme Turları (Round of 32, 16, QF, SF) ---
+    { id: 33, date: 'Sunday 28 June 2026', time: '20:00', stage: 'Round of 32', stadium: 'Houston Stadium', home: { n: 'Winner Gr A', c: 'W1A', f: '?' }, away: { n: 'Runner-up Gr C', c: 'R2C', f: '?' } },
+    { id: 49, date: 'Saturday 4 July 2026', time: '18:00', stage: 'Round of 16', stadium: 'Dallas Stadium', home: { n: 'Winner R32-1', c: 'W49', f: '?' }, away: { n: 'Winner R32-2', c: 'W50', f: '?' } },
+    { id: 60, date: 'Friday 10 July 2026', time: '21:00', stage: 'Quarter-Final', stadium: 'Kansas City Stadium', home: { n: 'Winner R16-1', c: 'QF1', f: '?' }, away: { n: 'Winner R16-2', c: 'QF2', f: '?' } },
+    { id: 70, date: 'Tuesday 14 July 2026', time: '20:00', stage: 'Semi-Final', stadium: 'Atlanta Stadium', home: { n: 'Winner QF1', c: 'SF1', f: '?' }, away: { n: 'Winner QF2', c: 'SF2', f: '?' } },
+    // --- FİNAL ---
+    { id: 104, date: 'Sunday 19 July 2026', time: '20:00', stage: 'WORLD CUP FINAL', stadium: 'MetLife Stadium (NY/NJ)', home: { n: 'Finalist 1', c: 'FIN1', f: '🏆' }, away: { n: 'Finalist 2', c: 'FIN2', f: '🏆' } }
+];
+
+function renderMatches(filter = "") {
+    const list = document.getElementById('match-list');
+    const filtered = WC_2026_MATCHES.filter(m => 
+        m.home.n.toLowerCase().includes(filter.toLowerCase()) || 
+        m.away.n.toLowerCase().includes(filter.toLowerCase()) ||
+        m.stage.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    list.innerHTML = filtered.map(m => `
+        <div class="card rounded-[24px] p-5 flex flex-col gap-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest">${m.stage}</div>
+                    <div class="text-[9px] font-bold text-gray-600 mt-0.5">${m.stadium}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] font-bold text-white">${m.date}</div>
+                    <div class="text-[11px] font-black text-green-400 mt-0.5">${m.time}</div>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between px-2">
+                <div class="flex flex-col items-center w-[40%] gap-2">
+                    <div class="team-orb">${m.home.f}</div>
+                    <div class="font-display text-sm font-black uppercase text-center leading-tight">${m.home.n}</div>
+                </div>
+                <div class="font-display text-2xl font-black text-gray-700">VS</div>
+                <div class="flex flex-col items-center w-[40%] gap-2">
+                    <div class="team-orb">${m.away.f}</div>
+                    <div class="font-display text-sm font-black uppercase text-center leading-tight">${m.away.n}</div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center border-t border-white/5 pt-4">
+                <div class="flex flex-col">
+                    <span class="text-[9px] font-bold text-gray-500 uppercase">Pool: 0 USDC</span>
+                    <span class="text-[9px] font-bold text-gray-500 uppercase">0 Tickets sold</span>
+                </div>
+                <button onclick="window.openModal(${m.id})" class="btn-primary px-7 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider">
+                    Predict
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.openModal = (id) => {
+    const m = WC_2026_MATCHES.find(x => x.id === id);
+    document.getElementById('modal-title').innerText = `${m.home.c} VS ${m.away.c}`;
+    document.getElementById('m-home-flag').innerText = m.home.f;
+    document.getElementById('m-away-flag').innerText = m.away.f;
+    document.getElementById('m-home-code').innerText = m.home.c;
+    document.getElementById('m-away-code').innerText = m.away.c;
+    document.getElementById('s-home').value = 0;
+    document.getElementById('s-away').value = 0;
+    document.getElementById('predict-modal').classList.add('open');
+};
+
+document.getElementById('modal-close').onclick = () => {
+    document.getElementById('predict-modal').classList.remove('open');
+};
+
+document.getElementById('match-search').oninput = (e) => {
+    renderMatches(e.target.value);
+};
+
+// Başlat
+renderMatches();
+</script>
+</body>
+</html>
